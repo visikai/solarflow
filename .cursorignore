@@ -1,0 +1,9 @@
+.github/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
+.vscode/
+
+*.creds
+.env

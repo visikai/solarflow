@@ -1,0 +1,57 @@
+# https://mise.jdx.dev
+[tools]
+gh = "2.90.0"
+node = "24"
+pnpm = "11"
+
+[settings]
+install_before = "7d"
+
+[env]
+LOG_LEVEL = "DEBUG"
+
+[tasks.install]
+description = "pnpm install all dependencies (frozen lockfile)"
+run = "pnpm install --frozen-lockfile"
+
+[tasks.update]
+description = "Upgrade pnpm lockfile"
+run = "pnpm update --latest"
+
+[tasks.dev]
+description = "Run SvelteKit dev server"
+run = "pnpm dev --open"
+
+[tasks.build]
+description = "Build static production bundle"
+run = "pnpm build"
+
+[tasks.preview]
+description = "Preview the production build"
+run = "pnpm preview"
+
+[tasks.fmt]
+description = "Format files (Prettier + ESLint --fix)"
+run = """
+pnpm prettier --write .
+pnpm eslint --fix .
+"""
+
+[tasks."fmt:check"]
+description = "Check formatting without modifying files"
+run = """
+pnpm prettier --check .
+pnpm eslint .
+"""
+
+[tasks.lint]
+description = "Run svelte-check (TypeScript + Svelte diagnostics)"
+run = "pnpm svelte-check --tsconfig ./tsconfig.json"
+
+[tasks.tests]
+description = "Run unit tests"
+run = "pnpm vitest run"
+
+[tasks.all]
+description = "Run all checks (fmt:check, lint, tests, build)"
+depends = ["fmt:check", "lint", "tests", "build"]

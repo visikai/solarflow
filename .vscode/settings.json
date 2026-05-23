@@ -1,0 +1,21 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.terminal.activateEnvironment": false,
+    "cSpell.words": [
+        "aiohttp",
+        "HTMX",
+        "isort",
+        "kwargs",
+        "loguru",
+        "mccabe",
+        "msgspec",
+        "pycodestyle",
+        "pydocstyle",
+        "pyflakes",
+        "pylint",
+        "pyproject",
+        "pyupgrade",
+        "solarflow",
+        "testpaths"
+    ]
+}

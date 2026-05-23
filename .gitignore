@@ -1,0 +1,29 @@
+# General
+.DS_Store
+*.log
+*.swp
+*.bak
+*.tmp
+*.pid
+
+# Node / pnpm
+node_modules/
+.pnpm-store/
+
+# SvelteKit / Vite
+.svelte-kit/
+build/
+.vite/
+*.tsbuildinfo
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Tests / coverage
+coverage/
+.vitest-cache/
+
+.mdboard
+.cursor
