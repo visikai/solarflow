@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LocationPicker from '$lib/components/LocationPicker.svelte';
+	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
 </script>
 
 <div class="app-shell">
@@ -9,7 +10,9 @@
 	</header>
 
 	<main class="app-main">
-		<section class="viz-zone" data-viz="timeline" aria-label="Timeline"></section>
+		<section class="viz-zone viz-zone--timeline" data-viz="timeline" aria-label="Timeline">
+			<TimelineStrip />
+		</section>
 		<section class="viz-zone" data-viz="clocks" aria-label="Clocks"></section>
 		<section class="viz-zone" data-viz="sun-arc" aria-label="Sun arc"></section>
 		<section class="viz-zone" data-viz="mapping-curve" aria-label="Mapping curve"></section>
@@ -50,5 +53,10 @@
 		min-height: 8rem;
 		border: 1px dashed var(--color-grid);
 		border-radius: 0.5rem;
+	}
+
+	.viz-zone--timeline {
+		padding: 0.75rem 1rem;
+		border-style: solid;
 	}
 </style>

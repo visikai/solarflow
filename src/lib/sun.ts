@@ -1,4 +1,4 @@
-import * as SunCalc from 'suncalc';
+import SunCalc from 'suncalc';
 import type { Location, SunEvents } from './types.js';
 
 function isInvalidDate(d: Date): boolean {
