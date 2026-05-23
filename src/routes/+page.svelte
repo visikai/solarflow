@@ -1,6 +1,7 @@
 <script lang="ts">
 	import LocationPicker from '$lib/components/LocationPicker.svelte';
 	import DualClocks from '$lib/components/viz/DualClocks.svelte';
+	import MappingCurve from '$lib/components/viz/MappingCurve.svelte';
 	import SunArc from '$lib/components/viz/SunArc.svelte';
 	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
 </script>
@@ -21,7 +22,13 @@
 		<section class="viz-zone viz-zone--sun-arc" data-viz="sun-arc" aria-label="Sun arc">
 			<SunArc />
 		</section>
-		<section class="viz-zone" data-viz="mapping-curve" aria-label="Mapping curve"></section>
+		<section
+			class="viz-zone viz-zone--mapping-curve"
+			data-viz="mapping-curve"
+			aria-label="Mapping curve"
+		>
+			<MappingCurve />
+		</section>
 		<section class="viz-zone" data-viz="yearly-drift" aria-label="Yearly drift"></section>
 	</main>
 </div>
@@ -62,7 +69,9 @@
 	}
 
 	.viz-zone--timeline,
-	.viz-zone--clocks {
+	.viz-zone--clocks,
+	.viz-zone--sun-arc,
+	.viz-zone--mapping-curve {
 		padding: 0.75rem 1rem;
 		border-style: solid;
 	}
