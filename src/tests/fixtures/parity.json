@@ -1,0 +1,472 @@
+[
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-12-21T09:00:00+00:00",
+		"expectedSolarHours": 4.559516
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-12-21T17:00:00+00:00",
+		"expectedSolarHours": 18.915916
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-12-21T02:00:00+00:00",
+		"expectedSolarHours": 0.342443
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-12-21T22:00:00+00:00",
+		"expectedSolarHours": 21.928242
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-03-20T06:00:00-05:00",
+		"expectedSolarHours": 5.697019
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-03-20T12:00:00-05:00",
+		"expectedSolarHours": 11.651409
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-03-20T18:00:00-05:00",
+		"expectedSolarHours": 17.600536
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-03-20T00:00:00-05:00",
+		"expectedSolarHours": 23.642708
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-09-22T12:00:00-05:00",
+		"expectedSolarHours": 11.894818
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-03-20T08:00:00-04:00",
+		"expectedSolarHours": 7.007769
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-03-20T12:00:00-04:00",
+		"expectedSolarHours": 10.95425
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-03-20T18:00:00-04:00",
+		"expectedSolarHours": 16.873972
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-06-21T09:00:00-04:00",
+		"expectedSolarHours": 8.845015
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-06-21T15:00:00-04:00",
+		"expectedSolarHours": 13.617551
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-06-21T23:00:00-04:00",
+		"expectedSolarHours": 21.351151
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-12-21T07:00:00-05:00",
+		"expectedSolarHours": 5.768335
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-12-21T12:00:00-05:00",
+		"expectedSolarHours": 12.12008
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-12-21T17:00:00-05:00",
+		"expectedSolarHours": 18.382064
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-11-03T06:00:00-05:00",
+		"expectedSolarHours": 5.533076
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-11-03T12:00:00-05:00",
+		"expectedSolarHours": 12.401226
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-03-10T12:00:00-04:00",
+		"expectedSolarHours": 10.8657
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-06-21T04:00:00+01:00",
+		"expectedSolarHours": 4.818633
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-06-21T12:00:00+01:00",
+		"expectedSolarHours": 11.249194
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-06-21T21:00:00+01:00",
+		"expectedSolarHours": 17.743921
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-12-21T08:00:00+00:00",
+		"expectedSolarHours": 5.946079
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-12-21T12:00:00+00:00",
+		"expectedSolarHours": 12.029845
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-12-21T16:00:00+00:00",
+		"expectedSolarHours": 18.082733
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-06-21T06:00:00+10:00",
+		"expectedSolarHours": 5.1455
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-06-21T12:00:00+10:00",
+		"expectedSolarHours": 12.060716
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-06-21T18:00:00+10:00",
+		"expectedSolarHours": 18.939601
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-12-21T06:00:00+11:00",
+		"expectedSolarHours": 6.26211
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-12-21T12:00:00+11:00",
+		"expectedSolarHours": 11.260293
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-12-21T18:00:00+11:00",
+		"expectedSolarHours": 16.258475
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-03-20T12:00:00+00:00",
+		"expectedSolarHours": 10.439373
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-09-22T12:00:00+00:00",
+		"expectedSolarHours": 10.70055
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-01-15T12:00:00-05:00",
+		"expectedSolarHours": 11.885493
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-07-15T12:00:00-04:00",
+		"expectedSolarHours": 11.162689
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-06-21T12:00:00-05:00",
+		"expectedSolarHours": 11.738253
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-12-21T12:00:00-05:00",
+		"expectedSolarHours": 11.797176
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-03-20T12:00:00+00:00",
+		"expectedSolarHours": 11.863775
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-09-22T12:00:00+01:00",
+		"expectedSolarHours": 11.135734
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-01-15T14:00:00+00:00",
+		"expectedSolarHours": 12.847525
+	},
+	{
+		"location": {
+			"name": "New York",
+			"latitude": 40.7128,
+			"longitude": -74.006,
+			"timezone": "America/New_York"
+		},
+		"instant": "2024-09-22T12:00:00-04:00",
+		"expectedSolarHours": 11.205459
+	},
+	{
+		"location": {
+			"name": "Reykjavik",
+			"latitude": 64.1466,
+			"longitude": -21.9426,
+			"timezone": "Atlantic/Reykjavik"
+		},
+		"instant": "2024-04-15T14:00:00+00:00",
+		"expectedSolarHours": 12.41377
+	},
+	{
+		"location": {
+			"name": "Quito",
+			"latitude": -0.1807,
+			"longitude": -78.4678,
+			"timezone": "America/Guayaquil"
+		},
+		"instant": "2024-04-15T14:00:00-05:00",
+		"expectedSolarHours": 13.75649
+	},
+	{
+		"location": {
+			"name": "London",
+			"latitude": 51.5074,
+			"longitude": -0.1278,
+			"timezone": "Europe/London"
+		},
+		"instant": "2024-04-15T14:00:00+01:00",
+		"expectedSolarHours": 12.849942
+	},
+	{
+		"location": {
+			"name": "Sydney",
+			"latitude": -33.8688,
+			"longitude": 151.2093,
+			"timezone": "Australia/Sydney"
+		},
+		"instant": "2024-04-15T14:00:00+10:00",
+		"expectedSolarHours": 14.227071
+	}
+]
