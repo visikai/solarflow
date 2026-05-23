@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@photostructure/tz-lookup':
+        specifier: ^11.5.0
+        version: 11.5.0
       suncalc:
         specifier: ^1.9.0
         version: 1.9.0
@@ -176,6 +179,9 @@ packages:
 
   '@oxc-project/types@0.132.0':
     resolution: {integrity: sha512-FESMOxil5Se014ui/Eq8fT5uHJo6nIRwH0PfJrZJXs6Gek3ZVFOrpUv3YIZT20m+extU98Hg1Ym72U58rlsxUQ==}
+
+  '@photostructure/tz-lookup@11.5.0':
+    resolution: {integrity: sha512-0DVFriinZ7TeOnm9ytXeSL3NMFU87ZqMjgbPNkd8LgHFLcPg1BDyM1eewFYs+pPM+62S4fSP9Mtgijmn+6y95w==}
 
   '@playwright/test@1.60.0':
     resolution: {integrity: sha512-O71yZIbAh/PxDMNGns37GHBIfrVkEVyn+AXyIa5dOTfb4/xNvRWV+Vv/NMbNCtODB/pO7vLlF2OTmMVLhmr7Ag==}
@@ -1266,6 +1272,8 @@ snapshots:
     optional: true
 
   '@oxc-project/types@0.132.0': {}
+
+  '@photostructure/tz-lookup@11.5.0': {}
 
   '@playwright/test@1.60.0':
     dependencies:

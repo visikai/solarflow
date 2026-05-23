@@ -53,7 +53,7 @@ The project recently pivoted from a planned Python/FastAPI server to a **pure st
 - [SvelteKit](https://kit.svelte.dev/) with `@sveltejs/adapter-static` (TypeScript, strict)
 - [Vite](https://vitejs.dev/) for bundling
 - [`suncalc`](https://github.com/mourner/suncalc) for sunrise/sunset/altitude/azimuth
-- [`tz-lookup`](https://github.com/darkskyapp/tz-lookup) for IANA timezone from lat/lng (lazy-loaded)
+- [`@photostructure/tz-lookup`](https://github.com/photostructure/tz-lookup) for IANA timezone from lat/lng (lazy-loaded)
 - [`uplot`](https://github.com/leeoniya/uPlot) for time-series charts
 - Hand-rolled SVG (via Svelte components) for the bespoke clocks/timeline/sun-arc
 - [Nominatim](https://nominatim.org/) for free-form geocoding (browser → OSM directly)

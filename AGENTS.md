@@ -9,7 +9,7 @@ A non-linear, sun-anchored clock — deployed as a static SPA on GitHub Pages.
 - **Package manager**: pnpm
 - **Bundler**: Vite (via SvelteKit)
 - **Sun ephemerides**: [`suncalc`](https://github.com/mourner/suncalc)
-- **Timezone resolution**: [`tz-lookup`](https://github.com/darkskyapp/tz-lookup) (lazy-loaded)
+- **Timezone resolution**: [`@photostructure/tz-lookup`](https://github.com/photostructure/tz-lookup) (lazy-loaded)
 - **Charts**: [`uplot`](https://github.com/leeoniya/uPlot) for time-series visualizations
 - **Bespoke viz**: hand-rolled SVG via Svelte components
 - **Geocoding**: Nominatim (called directly from the browser; cached in localStorage)
