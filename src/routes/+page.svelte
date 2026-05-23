@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LocationPicker from '$lib/components/LocationPicker.svelte';
+	import DualClocks from '$lib/components/viz/DualClocks.svelte';
 	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
 </script>
 
@@ -13,7 +14,9 @@
 		<section class="viz-zone viz-zone--timeline" data-viz="timeline" aria-label="Timeline">
 			<TimelineStrip />
 		</section>
-		<section class="viz-zone" data-viz="clocks" aria-label="Clocks"></section>
+		<section class="viz-zone viz-zone--clocks" data-viz="clocks" aria-label="Clocks">
+			<DualClocks />
+		</section>
 		<section class="viz-zone" data-viz="sun-arc" aria-label="Sun arc"></section>
 		<section class="viz-zone" data-viz="mapping-curve" aria-label="Mapping curve"></section>
 		<section class="viz-zone" data-viz="yearly-drift" aria-label="Yearly drift"></section>
