@@ -1,9 +1,11 @@
 export {
+	GeocodeNetworkError,
 	GeolocationDeniedError,
 	GeolocationTimeoutError,
 	GeolocationUnavailableError,
 	PolarSunError
 } from './errors.js';
+export { geocode, geocodeSuggest } from './geocode.js';
 export { getBrowserLocation } from './geolocation.js';
 export { PRESETS } from './presets.js';
 export {

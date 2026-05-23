@@ -25,3 +25,10 @@ export class GeolocationTimeoutError extends Error {
 		this.name = 'GeolocationTimeoutError';
 	}
 }
+
+export class GeocodeNetworkError extends Error {
+	constructor(message = 'Geocoding request failed') {
+		super(message);
+		this.name = 'GeocodeNetworkError';
+	}
+}
