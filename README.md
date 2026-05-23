@@ -21,7 +21,7 @@ That's solarflow.
 Solarflow defines two parallel time systems:
 
 - **Linear time** — the familiar 24-hour clock. Identical regardless of season or latitude.
-- **Solar time** *(working name)* — a non-linear clock anchored to the sun:
+- **Solar time** _(working name)_ — a non-linear clock anchored to the sun:
   - actual sunrise maps to **06:00**
   - actual sunset maps to **18:00**
   - daytime and nighttime are each independently stretched (or compressed) so that the mapping is continuous.
@@ -32,15 +32,15 @@ The same scaled hour always represents the same fraction of available daylight.
 
 In Reykjavík on the winter solstice, the sun rises around 11:20 and sets around 15:30 — only about four hours of daylight. In solar time:
 
-| Linear time | Solar time | Notes |
-|---|---|---|
-| 11:20 | 06:00 | Sunrise |
-| 13:25 | 12:00 | Solar noon |
-| 15:30 | 18:00 | Sunset |
-| 09:00 | ~03:25 | "Workday start" — still deep night |
-| 17:00 | ~20:25 | "Workday end" — well after sunset |
+| Linear time | Solar time | Notes                              |
+| ----------- | ---------- | ---------------------------------- |
+| 11:20       | 06:00      | Sunrise                            |
+| 13:25       | 12:00      | Solar noon                         |
+| 15:30       | 18:00      | Sunset                             |
+| 09:00       | ~03:25     | "Workday start" — still deep night |
+| 17:00       | ~20:25     | "Workday end" — well after sunset  |
 
-On the same day, the entire conventional workday (09:00–17:00) sits almost entirely *outside* the daylight window. Solar time makes that visible at a glance.
+On the same day, the entire conventional workday (09:00–17:00) sits almost entirely _outside_ the daylight window. Solar time makes that visible at a glance.
 
 ## Status
 
@@ -70,17 +70,17 @@ mise run dev                  # SvelteKit dev server
 
 Common tasks (see [`.mise.toml`](.mise.toml)):
 
-| Task | What it does |
-|---|---|
-| `mise run install` | `pnpm install --frozen-lockfile` |
-| `mise run dev` | SvelteKit dev server with HMR |
-| `mise run build` | Build the static bundle into `build/` |
-| `mise run preview` | Serve the built bundle locally |
-| `mise run fmt` | Format with Prettier + ESLint |
-| `mise run fmt:check` | Check formatting without modifying |
-| `mise run lint` | `svelte-check` (TS + Svelte diagnostics) |
-| `mise run tests` | Run Vitest |
-| `mise run all` | fmt:check + lint + tests + build |
+| Task                 | What it does                             |
+| -------------------- | ---------------------------------------- |
+| `mise run install`   | `pnpm install --frozen-lockfile`         |
+| `mise run dev`       | SvelteKit dev server with HMR            |
+| `mise run build`     | Build the static bundle into `build/`    |
+| `mise run preview`   | Serve the built bundle locally           |
+| `mise run fmt`       | Format with Prettier + ESLint            |
+| `mise run fmt:check` | Check formatting without modifying       |
+| `mise run lint`      | `svelte-check` (TS + Svelte diagnostics) |
+| `mise run tests`     | Run Vitest                               |
+| `mise run all`       | fmt:check + lint + tests + build         |
 
 ## Project structure (target)
 
@@ -131,7 +131,7 @@ The original Python prototype using [`astral`](https://astral.readthedocs.io/) l
 ## Glossary
 
 - **Linear time** — the standard 24-hour clock; identical regardless of season or latitude.
-- **Solar time** — *(working name)* a non-linear clock for a given location and date, where actual sunrise maps to `06:00` and actual sunset to `18:00`; daytime hours and nighttime hours are independently stretched or compressed so that the same scaled hour always represents the same fraction of available daylight.
+- **Solar time** — _(working name)_ a non-linear clock for a given location and date, where actual sunrise maps to `06:00` and actual sunset to `18:00`; daytime hours and nighttime hours are independently stretched or compressed so that the same scaled hour always represents the same fraction of available daylight.
 - **Solar noon** — the moment the sun is highest in the sky; always maps to solar `12:00`.
 - **Linear→solar / solar→linear** — the two directions of the mapping. The forward direction answers "what is the solar time right now?"; the inverse answers questions like "what linear time is solar 09:00?"
 

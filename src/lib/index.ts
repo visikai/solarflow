@@ -8,6 +8,7 @@ export {
 export { geocode, geocodeSuggest } from './geocode.js';
 export { getBrowserLocation } from './geolocation.js';
 export { PRESETS } from './presets.js';
+export { location, LOCATION_STORAGE_KEY } from './stores/location.js';
 export {
 	scaleToLinear,
 	scaleToSolar,

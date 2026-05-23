@@ -14,6 +14,17 @@ export default defineConfig({
 					include: ['src/**/*.{test,spec}.{js,ts}'],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
 				}
+			},
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'browser',
+					environment: 'happy-dom',
+					include: ['src/**/*.svelte.{test,spec}.{js,ts}']
+				},
+				resolve: {
+					conditions: ['browser']
+				}
 			}
 		]
 	}
