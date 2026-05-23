@@ -1,5 +1,6 @@
 # General
 .DS_Store
+Thumbs.db
 *.log
 *.swp
 *.bak
@@ -15,15 +16,24 @@ node_modules/
 build/
 .vite/
 *.tsbuildinfo
+.output
+.vercel
+.netlify
+.wrangler
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
 # Env
 .env
 .env.*
 !.env.example
+!.env.test
 
 # Tests / coverage
 coverage/
 .vitest-cache/
+test-results/
 
+# Project tooling
 .mdboard
 .cursor
