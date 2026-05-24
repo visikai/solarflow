@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # npm ecosystem covers package.json; Dependabot updates pnpm-lock.yaml when present
+  - package-ecosystem: npm
+    directory: /
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-patch']
+    cooldown:
+      default-days: 7
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
