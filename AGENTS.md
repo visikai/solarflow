@@ -22,8 +22,8 @@ A non-linear, sun-anchored clock — deployed as a static SPA on GitHub Pages.
 
 This is a pure static SPA. No server, no backend. All computation runs in the browser.
 
-The original Python prototype (using `astral`) has been moved to a sibling repository at `../solarflow-py/` and is kept as a reference implementation for the linear↔solar scaling math.
+Scaling math is in `src/lib/scaling.ts` (clock↔solar); parity fixtures live in `src/tests/fixtures/parity.json`.
 
 ## Hosting
 
-Deployed to GitHub Pages via GitHub Actions on push to `main`. See task 012 in `.mdboard/tasks/` for deployment details.
+Deployed to GitHub Pages on push to `main` via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) (`BASE_PATH=/solarflow`).
