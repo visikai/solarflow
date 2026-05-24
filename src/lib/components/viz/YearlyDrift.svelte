@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatTimeInput, parseTimeInput } from '$lib/timeInput.js';
 	import {
 		computeYearlyDrift,
 		currentDayOfYear,
@@ -114,17 +115,6 @@
 			fillDaytime: colorWithAlpha(solar, 0.14),
 			fillWorkhours: colorWithAlpha(clock, 0.12)
 		};
-	}
-
-	function parseTimeInput(value: string): number {
-		const [h, m] = value.split(':').map(Number);
-		return h + (m || 0) / 60;
-	}
-
-	function formatTimeInput(decimalHours: number): string {
-		const h = Math.floor(decimalHours);
-		const m = Math.round((decimalHours - h) * 60);
-		return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 	}
 
 	function monthAxisSplits(): number[] {

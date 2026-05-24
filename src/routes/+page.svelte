@@ -4,6 +4,7 @@
 	import Logo from '$lib/components/Logo.svelte';
 	import DualClocks from '$lib/components/viz/DualClocks.svelte';
 	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
+	import ClockSolarConverter from '$lib/components/viz/ClockSolarConverter.svelte';
 	import YearlyDrift from '$lib/components/viz/YearlyDrift.svelte';
 </script>
 
@@ -32,6 +33,13 @@
 			aria-label="Yearly drift"
 		>
 			<YearlyDrift />
+		</section>
+		<section
+			class="viz-zone viz-zone--converter"
+			data-viz="converter"
+			aria-label="Clock and solar time converter"
+		>
+			<ClockSolarConverter />
 		</section>
 	</main>
 </div>
@@ -110,7 +118,8 @@
 
 	.viz-zone--timeline,
 	.viz-zone--clocks,
-	.viz-zone--yearly-drift {
+	.viz-zone--yearly-drift,
+	.viz-zone--converter {
 		padding: 0.75rem 1rem;
 		border-style: solid;
 	}
