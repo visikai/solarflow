@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
 	decomposeDecimalHours,
-	formatLinearDigital,
+	formatClockDigital,
 	formatSolarDigital,
 	handTip,
-	linearHandAngles,
+	clockHandAngles,
 	radiansFrom12oclock,
 	solarHandAngles
 } from './clockHands.js';
@@ -44,10 +44,10 @@ describe('decomposeDecimalHours', () => {
 	});
 });
 
-describe('linearHandAngles', () => {
+describe('clockHandAngles', () => {
 	it('returns noon-aligned hour hand at local noon', () => {
 		const instant = new Date('2024-03-20T12:00:00-04:00');
-		const angles = linearHandAngles(instant, 'America/New_York');
+		const angles = clockHandAngles(instant, 'America/New_York');
 		expect(angles.hour).toBe(0);
 		expect(angles.minute).toBe(0);
 		expect(angles.second).toBe(0);
@@ -55,7 +55,7 @@ describe('linearHandAngles', () => {
 
 	it('offsets minute and second hands at 14:30:45', () => {
 		const instant = new Date('2024-03-20T14:30:45-04:00');
-		const angles = linearHandAngles(instant, 'America/New_York');
+		const angles = clockHandAngles(instant, 'America/New_York');
 		const hourFrac = (2 + (30 + 45 / 60) / 60) / 12;
 		expect(angles.hour).toBeCloseTo(hourFrac * 360, 5);
 		expect(angles.minute).toBeCloseTo((30.75 / 60) * 360, 5);
@@ -81,9 +81,9 @@ describe('solarHandAngles', () => {
 });
 
 describe('digital formatting', () => {
-	it('formats linear time as HH:MM:SS', () => {
+	it('formats clock time as HH:MM:SS', () => {
 		const instant = new Date('2024-03-20T14:30:45-04:00');
-		expect(formatLinearDigital(instant, 'America/New_York')).toBe('14:30:45');
+		expect(formatClockDigital(instant, 'America/New_York')).toBe('14:30:45');
 	});
 
 	it('formats solar decimal hours as HH:MM:SS', () => {

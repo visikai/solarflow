@@ -17,7 +17,7 @@ vi.mock('$lib/stores/time.js', async () => {
 	const events = computeSunEvents(newYork, fixedNow);
 
 	return {
-		linearNow: readableStore(fixedNow),
+		clockNow: readableStore(fixedNow),
 		solarNow: readableStore(scaleToSolar(fixedNow, events))
 	};
 });

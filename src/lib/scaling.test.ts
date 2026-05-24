@@ -1,11 +1,11 @@
 /**
- * Parity vs ../solarflow-py (astral) uses a 2-minute tolerance (0.0333 h).
- * suncalc and astral share NOAA-style algorithms but can diverge by ~90 s near solstices.
+ * Parity fixtures use a 2-minute tolerance (0.0333 h).
+ * suncalc and the reference generator share NOAA-style algorithms but can diverge by ~90 s near solstices.
  */
 import { describe, expect, it } from 'vitest';
 import parityFixtures from '../tests/fixtures/parity.json';
 import { PolarSunError } from './errors.js';
-import { hoursApart, scaleToLinear, scaleToSolar } from './scaling.js';
+import { hoursApart, scaleToClock, scaleToSolar } from './scaling.js';
 import { computeSunEvents } from './sun.js';
 import type { Location } from './types.js';
 
@@ -37,7 +37,7 @@ function local(iso: string): Date {
 	return new Date(iso);
 }
 
-describe('scaleToSolar / scaleToLinear', () => {
+describe('scaleToSolar / scaleToClock', () => {
 	it('equinox at the equator is near identity at key points (within 1 min)', () => {
 		const events = computeSunEvents(QUITO, local('2024-03-20T12:00:00-05:00'));
 
@@ -65,7 +65,7 @@ describe('scaleToSolar / scaleToLinear', () => {
 			local('2024-12-21T17:00:00Z')
 		]) {
 			const solar = scaleToSolar(sample, events);
-			const back = scaleToLinear(solar, events);
+			const back = scaleToClock(solar, events);
 			expect(Math.abs(back.getTime() - sample.getTime())).toBeLessThan(1000);
 		}
 
@@ -100,17 +100,17 @@ describe('scaleToSolar / scaleToLinear', () => {
 		expect(hoursApart(scaleToSolar(events.sunset, events), 18)).toBeLessThan(TOLERANCE_MIN);
 	});
 
-	it('round-trips within 1 s across a linear-time sweep', () => {
+	it('round-trips within 1 s across a clock-time sweep', () => {
 		const events = computeSunEvents(NEW_YORK, local('2024-06-21T12:00:00-04:00'));
 		const start = events.sunrise.getTime();
 		const end = events.nextSunrise.getTime();
 		const step = 15 * 60 * 1000;
 
 		for (let t = start; t < end; t += step) {
-			const linear = new Date(t);
-			const solar = scaleToSolar(linear, events);
-			const back = scaleToLinear(solar, events);
-			expect(Math.abs(back.getTime() - linear.getTime())).toBeLessThan(1000);
+			const clockInstant = new Date(t);
+			const solar = scaleToSolar(clockInstant, events);
+			const back = scaleToClock(solar, events);
+			expect(Math.abs(back.getTime() - clockInstant.getTime())).toBeLessThan(1000);
 		}
 	});
 
@@ -132,7 +132,7 @@ describe('scaleToSolar / scaleToLinear', () => {
 
 		for (const sample of samples) {
 			const solar = scaleToSolar(sample, events);
-			const back = scaleToLinear(solar, events);
+			const back = scaleToClock(solar, events);
 			expect(Math.abs(back.getTime() - sample.getTime())).toBeLessThan(1000);
 		}
 	});
@@ -152,13 +152,13 @@ describe('scaleToSolar / scaleToLinear', () => {
 
 		const now = local('2024-06-21T12:00:00+02:00');
 		expect(() => scaleToSolar(now, polarDay)).toThrow(PolarSunError);
-		expect(() => scaleToLinear(12, polarDay)).toThrow(PolarSunError);
+		expect(() => scaleToClock(12, polarDay)).toThrow(PolarSunError);
 		expect(() => scaleToSolar(now, polarNight)).toThrow(PolarSunError);
-		expect(() => scaleToLinear(12, polarNight)).toThrow(PolarSunError);
+		expect(() => scaleToClock(12, polarNight)).toThrow(PolarSunError);
 	});
 });
 
-describe('parity with solarflow-py (astral)', () => {
+describe('parity fixtures', () => {
 	it('matches pre-generated fixtures within 2 minutes', () => {
 		for (const row of parityFixtures) {
 			const loc = row.location as Location;

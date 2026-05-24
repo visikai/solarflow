@@ -95,7 +95,7 @@ function solarAtLocalHour(
 }
 
 /**
- * For each calendar day in `year` at `loc`, map workday start/end linear hours to scaled solar hours.
+ * For each calendar day in `year` at `loc`, map workday start/end clock hours to scaled solar hours.
  * Polar days yield `null` in the series (uPlot gaps).
  */
 export function computeYearlyDrift(loc: Location, params: YearlyDriftParams): YearlyDriftSeries {
@@ -231,8 +231,8 @@ export function formatWorkhoursOverlapLabel(overlap: WorkdaySolarOverlap): strin
 	return label;
 }
 
-/** Max absolute deviation from input linear hour across the year (equator stability test). */
-export function maxYearlyDriftFromLinear(
+/** Max absolute deviation from input clock hour across the year (equator stability test). */
+export function maxYearlyDriftFromClock(
 	series: YearlyDriftSeries,
 	workdayStart: number,
 	workdayEnd: number

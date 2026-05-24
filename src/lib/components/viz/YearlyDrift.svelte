@@ -42,7 +42,7 @@
 		fg: string;
 		grid: string;
 		bg: string;
-		linear: string;
+		clock: string;
 		solar: string;
 		fillDaytime: string;
 		fillWorkhours: string;
@@ -76,7 +76,7 @@
 			fg: '#1a1a1a',
 			grid: '#d4d0c8',
 			bg: '#f8f6f1',
-			linear: '#2563eb',
+			clock: '#2563eb',
 			solar: '#c2410c',
 			fillDaytime: 'rgba(194, 65, 12, 0.14)',
 			fillWorkhours: 'rgba(37, 99, 235, 0.12)'
@@ -103,16 +103,16 @@
 
 	function readColors(el: HTMLElement = colorSource()): ChartColors {
 		const style = getComputedStyle(el);
-		const linear = style.getPropertyValue('--color-accent-linear').trim() || '#2563eb';
+		const clock = style.getPropertyValue('--color-accent-clock').trim() || '#2563eb';
 		const solar = style.getPropertyValue('--color-accent-solar').trim() || '#c2410c';
 		return {
 			fg: style.getPropertyValue('--color-fg').trim() || '#1a1a1a',
 			grid: style.getPropertyValue('--color-grid').trim() || '#d4d0c8',
 			bg: style.getPropertyValue('--color-bg').trim() || '#f8f6f1',
-			linear,
+			clock,
 			solar,
 			fillDaytime: colorWithAlpha(solar, 0.14),
-			fillWorkhours: colorWithAlpha(linear, 0.12)
+			fillWorkhours: colorWithAlpha(clock, 0.12)
 		};
 	}
 
@@ -248,9 +248,9 @@
 		if (x == null || !Number.isFinite(x)) return;
 		const { top, height } = u.bbox;
 		const ctx = u.ctx;
-		const { linear } = chartState.colors;
+		const { clock } = chartState.colors;
 		ctx.save();
-		ctx.strokeStyle = linear;
+		ctx.strokeStyle = clock;
 		ctx.globalAlpha = 0.75;
 		ctx.lineWidth = 2.5;
 		ctx.setLineDash([6, 5]);
@@ -259,7 +259,7 @@
 		ctx.lineTo(x, top + height);
 		ctx.stroke();
 		ctx.setLineDash([]);
-		drawLineLabel(ctx, 'today', x, top + 10, 'center', chartState.colors, linear);
+		drawLineLabel(ctx, 'today', x, top + 10, 'center', chartState.colors, clock);
 		ctx.restore();
 	}
 
@@ -361,13 +361,13 @@
 				},
 				{
 					label: 'Workday start',
-					stroke: colors.linear,
+					stroke: colors.clock,
 					width: 2,
 					points: { show: false }
 				},
 				{
 					label: 'Workday end',
-					stroke: colors.linear,
+					stroke: colors.clock,
 					width: 2,
 					dash: [4, 4],
 					points: { show: false }

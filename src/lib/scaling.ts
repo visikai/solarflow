@@ -19,7 +19,7 @@ function scaledDayLength(cfg: ScalingConfig): number {
 }
 
 /**
- * Map linear clock time to scaled solar hours in `[0, 24)`.
+ * Map clock (24h) time to scaled solar hours in `[0, 24)`.
  */
 export function scaleToSolar(
 	now: Date,
@@ -55,13 +55,13 @@ export function scaleToSolar(
 	return wrapSolarHours(scaled);
 }
 
-function linearFromDaySegment(solarHours: number, events: SunEvents, cfg: ScalingConfig): Date {
+function clockFromDaySegment(solarHours: number, events: SunEvents, cfg: ScalingConfig): Date {
 	const dayLength = events.sunset.getTime() - events.sunrise.getTime();
 	const frac = (solarHours - cfg.scaledSunriseHour) / scaledDayLength(cfg);
 	return new Date(events.sunrise.getTime() + dayLength * frac);
 }
 
-function linearFromNightSegment(
+function clockFromNightSegment(
 	solarHours: number,
 	nightStart: number,
 	nightEnd: number,
@@ -78,9 +78,9 @@ function inHalfOpenInterval(t: number, start: number, end: number): boolean {
 }
 
 /**
- * Inverse of {@link scaleToSolar}: map scaled solar hours in `[0, 24)` to a linear `Date`.
+ * Inverse of {@link scaleToSolar}: map scaled solar hours in `[0, 24)` to a clock `Date`.
  */
-export function scaleToLinear(
+export function scaleToClock(
 	solarHours: number,
 	events: SunEvents,
 	cfg: ScalingConfig = DEFAULT_SCALING
@@ -97,16 +97,16 @@ export function scaleToLinear(
 	}
 
 	if (h > cfg.scaledSunriseHour && h < cfg.scaledSunsetHour) {
-		return linearFromDaySegment(h, events, cfg);
+		return clockFromDaySegment(h, events, cfg);
 	}
 
-	const evening = linearFromNightSegment(
+	const evening = clockFromNightSegment(
 		h,
 		events.sunset.getTime(),
 		events.nextSunrise.getTime(),
 		cfg
 	);
-	const preDawn = linearFromNightSegment(
+	const preDawn = clockFromNightSegment(
 		h,
 		events.previousSunset.getTime(),
 		events.sunrise.getTime(),

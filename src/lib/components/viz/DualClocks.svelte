@@ -1,14 +1,14 @@
 <script lang="ts">
 	import {
-		formatLinearDigital,
+		formatClockDigital,
 		formatSolarDigital,
 		handTip,
-		linearHandAngles,
+		clockHandAngles,
 		solarHandAngles
 	} from '$lib/clockHands.js';
 	import { location } from '$lib/stores/location.js';
 	import { sunEvents } from '$lib/stores/sunEvents.js';
-	import { linearNow, solarNow } from '$lib/stores/time.js';
+	import { clockNow, solarNow } from '$lib/stores/time.js';
 
 	const SIZE = 200;
 	const CX = SIZE / 2;
@@ -20,10 +20,10 @@
 	let events = $derived($sunEvents);
 	let polar = $derived(events.polar);
 
-	let linearAngles = $derived(linearHandAngles($linearNow, $location.timezone));
+	let clockAngles = $derived(clockHandAngles($clockNow, $location.timezone));
 	let solarAngles = $derived($solarNow === null ? null : solarHandAngles($solarNow));
 
-	let linearDigital = $derived(formatLinearDigital($linearNow, $location.timezone));
+	let clockDigital = $derived(formatClockDigital($clockNow, $location.timezone));
 	let solarDigital = $derived($solarNow === null ? '' : formatSolarDigital($solarNow));
 
 	const HOUR_TICKS = Array.from({ length: 12 }, (_, i) => i);
@@ -51,7 +51,7 @@
 		};
 	}
 
-	let linearHands = $derived(handLines(linearAngles));
+	let clockHandLines = $derived(handLines(clockAngles));
 	let solarHands = $derived(solarAngles ? handLines(solarAngles) : null);
 
 	function labelPos(solarHour: number): { x: number; y: number; anchor: string } {
@@ -72,15 +72,15 @@
 
 <div class="dual-clocks">
 	<div class="clock-panel">
-		<p class="clock-title">Linear</p>
-		<p class="sr-only" aria-live="polite">Linear clock showing {linearDigital}.</p>
+		<p class="clock-title">Clock</p>
+		<p class="sr-only" aria-live="polite">Clock showing {clockDigital}.</p>
 		<svg
 			class="clock-svg"
 			viewBox="0 0 {SIZE} {SIZE}"
 			width={SIZE}
 			height={SIZE}
 			role="img"
-			aria-label="Linear clock"
+			aria-label="24-hour clock"
 		>
 			<circle class="face" cx={CX} cy={CY} r={R} />
 			{#each HOUR_TICKS as i (i)}
@@ -88,25 +88,31 @@
 				<line class="tick" x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
 			{/each}
 			<g class="hands">
-				<line class="hand hour" x1={CX} y1={CY} x2={linearHands.hour.x2} y2={linearHands.hour.y2} />
+				<line
+					class="hand hour"
+					x1={CX}
+					y1={CY}
+					x2={clockHandLines.hour.x2}
+					y2={clockHandLines.hour.y2}
+				/>
 				<line
 					class="hand minute"
 					x1={CX}
 					y1={CY}
-					x2={linearHands.minute.x2}
-					y2={linearHands.minute.y2}
+					x2={clockHandLines.minute.x2}
+					y2={clockHandLines.minute.y2}
 				/>
 				<line
 					class="hand second"
 					x1={CX}
 					y1={CY}
-					x2={linearHands.second.x2}
-					y2={linearHands.second.y2}
+					x2={clockHandLines.second.x2}
+					y2={clockHandLines.second.y2}
 				/>
 			</g>
 			<circle class="hub" cx={CX} cy={CY} r="4" />
 		</svg>
-		<p class="digital linear">{linearDigital}</p>
+		<p class="digital clock">{clockDigital}</p>
 	</div>
 
 	<div class="clock-panel">
@@ -257,8 +263,8 @@
 		letter-spacing: 0.04em;
 	}
 
-	.digital.linear {
-		color: var(--color-accent-linear);
+	.digital.clock {
+		color: var(--color-accent-clock);
 	}
 
 	.digital.solar {
@@ -266,7 +272,7 @@
 	}
 
 	.clock-panel:first-child .hand {
-		stroke: var(--color-accent-linear);
+		stroke: var(--color-accent-clock);
 	}
 
 	.clock-panel:last-child .hand {

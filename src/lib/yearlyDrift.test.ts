@@ -6,7 +6,7 @@ import {
 	doyToMonthDay,
 	formatWorkhoursOverlapLabel,
 	locationObservesDst,
-	maxYearlyDriftFromLinear,
+	maxYearlyDriftFromClock,
 	monthStartDaysOfYear,
 	workdaySolarOverlapFractions,
 	yearlyDriftYRange,
@@ -89,7 +89,7 @@ describe('computeYearlyDrift', () => {
 			workdayStart: DEFAULT_WORKDAY_START,
 			workdayEnd: DEFAULT_WORKDAY_END
 		});
-		const { startMax, endMax } = maxYearlyDriftFromLinear(
+		const { startMax, endMax } = maxYearlyDriftFromClock(
 			series,
 			DEFAULT_WORKDAY_START,
 			DEFAULT_WORKDAY_END

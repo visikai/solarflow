@@ -27,13 +27,13 @@ describe('sampleMappingCurve', () => {
 	it('returns 1440 points with reference diagonal matching x', () => {
 		const series = sampleMappingCurve(NEW_YORK, equinox);
 		expect(series).not.toBeNull();
-		expect(series!.linear).toHaveLength(MAPPING_CURVE_SAMPLES);
+		expect(series!.clock).toHaveLength(MAPPING_CURVE_SAMPLES);
 		expect(series!.solar).toHaveLength(MAPPING_CURVE_SAMPLES);
 		expect(series!.reference).toHaveLength(MAPPING_CURVE_SAMPLES);
-		expect(series!.linear[0]).toBe(0);
-		expect(series!.linear[1439]).toBeCloseTo(23 + 59 / 60, 5);
+		expect(series!.clock[0]).toBe(0);
+		expect(series!.clock[1439]).toBeCloseTo(23 + 59 / 60, 5);
 		for (let i = 0; i < MAPPING_CURVE_SAMPLES; i++) {
-			expect(series!.reference[i]).toBe(series!.linear[i]);
+			expect(series!.reference[i]).toBe(series!.clock[i]);
 		}
 	});
 
@@ -48,7 +48,7 @@ describe('sampleMappingCurve', () => {
 		const series = sampleMappingCurve(QUITO, equinox)!;
 		const noonIdx = 12 * 60;
 		expect(series.solar[noonIdx]).toBeCloseTo(12, 0);
-		expect(series.solar[noonIdx]).toBeCloseTo(series.linear[noonIdx], 0);
+		expect(series.solar[noonIdx]).toBeCloseTo(series.clock[noonIdx], 0);
 	});
 });
 

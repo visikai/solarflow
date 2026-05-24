@@ -2,7 +2,7 @@
 	import { DEFAULT_SCALING } from '$lib/types.js';
 	import { location } from '$lib/stores/location.js';
 	import { sunEvents } from '$lib/stores/sunEvents.js';
-	import { linearNow, solarNow } from '$lib/stores/time.js';
+	import { clockNow, solarNow } from '$lib/stores/time.js';
 	import type { SunEvents } from '$lib/types.js';
 
 	const WIDTH = 1000;
@@ -66,7 +66,7 @@
 	type Segment = { x: number; width: number; kind: 'night' | 'day' };
 	type Tick = { x: number; label: string; sublabel: string };
 
-	function linearSegmentRects(ev: SunEvents): Segment[] {
+	function clockSegmentRects(ev: SunEvents): Segment[] {
 		if (ev.polar !== null) return [];
 
 		const tz = $location.timezone;
@@ -104,7 +104,7 @@
 		];
 	}
 
-	function linearTicks(ev: SunEvents): Tick[] {
+	function clockTicks(ev: SunEvents): Tick[] {
 		const tz = $location.timezone;
 		return [
 			{ t: ev.sunrise, label: tickLabel(ev.sunrise, tz), sublabel: 'Sunrise' },
@@ -129,29 +129,29 @@
 		}));
 	}
 
-	let linearSegments = $derived(linearSegmentRects(events));
+	let clockSegments = $derived(clockSegmentRects(events));
 	let solarSegments = $derived(solarSegmentRects());
-	let linearTicksList = $derived(linearTicks(events));
+	let clockTicksList = $derived(clockTicks(events));
 	let solarTicksList = $derived(solarTicks());
 
-	let linearMarkerX = $derived(
-		polar === null ? xForHours(localDecimalHours($linearNow, $location.timezone)) : null
+	let clockMarkerX = $derived(
+		polar === null ? xForHours(localDecimalHours($clockNow, $location.timezone)) : null
 	);
 
 	let solarMarkerX = $derived(polar === null && $solarNow !== null ? xForHours($solarNow) : null);
 
 	let timelineSummary = $derived.by(() => {
 		const tz = $location.timezone;
-		const linear = formatLocalTime($linearNow, tz);
+		const clockTime = formatLocalTime($clockNow, tz);
 		if (polar !== null) {
 			const mode = polar === 'day' ? 'polar day' : 'polar night';
-			return `${mode}. Linear time ${linear}. Solar time is not shown on the timeline.`;
+			return `${mode}. Clock time ${clockTime}. Solar time is not shown on the timeline.`;
 		}
 		const sunrise = formatLocalTime(events.sunrise, tz);
 		const sunset = formatLocalTime(events.sunset, tz);
 		const solarPart =
 			$solarNow === null ? 'Solar time unavailable.' : `Solar time ${formatSolarTime($solarNow)}.`;
-		return `Linear time ${linear}. ${solarPart} Sunrise ${sunrise}, sunset ${sunset}.`;
+		return `Clock time ${clockTime}. ${solarPart} Sunrise ${sunrise}, sunset ${sunset}.`;
 	});
 </script>
 
@@ -159,15 +159,15 @@
 	<p class="sr-only" aria-live="polite">{timelineSummary}</p>
 
 	<div class="timeline-row">
-		<span class="row-label" id="timeline-linear-label">Linear</span>
+		<span class="row-label" id="timeline-clock-label">Clock</span>
 		<svg
 			class="timeline-svg"
 			viewBox="0 0 {WIDTH} {HEIGHT}"
 			width="100%"
 			height={HEIGHT}
 			role="img"
-			aria-labelledby="timeline-linear-label"
-			aria-label="Linear clock timeline with sunrise, noon, and sunset at local times"
+			aria-labelledby="timeline-clock-label"
+			aria-label="Clock timeline with sunrise, noon, and sunset at local times"
 		>
 			{#if polar !== null}
 				<rect class="polar-bg" x="0" y={STRIP_Y} width={WIDTH} height={STRIP_H} rx="4" />
@@ -183,7 +183,7 @@
 						: 'Polar night — sun stays below the horizon'}
 				</text>
 			{:else}
-				{#each linearSegments as seg (seg.kind + seg.x)}
+				{#each clockSegments as seg (seg.kind + seg.x)}
 					<rect
 						class="segment"
 						class:night={seg.kind === 'night'}
@@ -195,7 +195,7 @@
 					/>
 				{/each}
 
-				{#each linearTicksList as tick (tick.sublabel)}
+				{#each clockTicksList as tick (tick.sublabel)}
 					<line class="tick" x1={tick.x} y1={TICK_TOP} x2={tick.x} y2={TICK_TOP + TICK_H} />
 					<text class="tick-label" x={tick.x} y={TICK_TOP - 2} text-anchor="middle">
 						{tick.label}
@@ -205,11 +205,11 @@
 					</text>
 				{/each}
 
-				{#if linearMarkerX !== null}
-					<g class="marker linear" transform="translate({linearMarkerX}, 0)">
+				{#if clockMarkerX !== null}
+					<g class="marker clock" transform="translate({clockMarkerX}, 0)">
 						<line class="marker-line" x1="0" y1={TICK_TOP} x2="0" y2={TICK_TOP + TICK_H + 4} />
 						<circle class="marker-cap" cx="0" cy={TICK_TOP} r="4" />
-						<title>Linear {formatLocalTime($linearNow, $location.timezone)}</title>
+						<title>Clock {formatLocalTime($clockNow, $location.timezone)}</title>
 					</g>
 				{/if}
 			{/if}
@@ -345,10 +345,10 @@
 		stroke-width: 2.5;
 	}
 
-	.marker.linear .marker-line,
-	.marker.linear .marker-cap {
-		stroke: var(--color-accent-linear);
-		fill: var(--color-accent-linear);
+	.marker.clock .marker-line,
+	.marker.clock .marker-cap {
+		stroke: var(--color-accent-clock);
+		fill: var(--color-accent-clock);
 	}
 
 	.marker.solar .marker-line,

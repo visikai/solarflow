@@ -6,7 +6,7 @@
 	--color-day: #f4d03f;
 	--color-night: #2c3e6b;
 
-	--color-accent-linear: #2563eb;
+	--color-accent-clock: #2563eb;
 	--color-accent-solar: #c2410c;
 
 	--color-grid: #d4d0c8;
@@ -22,7 +22,7 @@
 		--color-day: #c9a227;
 		--color-night: #5a7ab8;
 
-		--color-accent-linear: #60a5fa;
+		--color-accent-clock: #60a5fa;
 		--color-accent-solar: #fbbf24;
 
 		--color-grid: #3a3834;
@@ -38,7 +38,7 @@
 	--color-day: #c9a227;
 	--color-night: #5a7ab8;
 
-	--color-accent-linear: #60a5fa;
+	--color-accent-clock: #60a5fa;
 	--color-accent-solar: #fbbf24;
 
 	--color-grid: #3a3834;
@@ -59,7 +59,7 @@
 }
 
 :focus-visible {
-	outline: 2px solid var(--color-accent-linear);
+	outline: 2px solid var(--color-accent-clock);
 	outline-offset: 2px;
 }
 

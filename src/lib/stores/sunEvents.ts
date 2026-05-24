@@ -3,7 +3,7 @@ import { scaleToSolar } from '../scaling.js';
 import { computeSunEvents } from '../sun.js';
 import type { Location, SunEvents } from '../types.js';
 import { location } from './location.js';
-import { linearNow } from './time.js';
+import { clockNow } from './time.js';
 
 /** Cache key: local calendar day + coordinates (sun times depend on place, not name). */
 export function sunEventsCacheKey(now: Date, loc: Location): string {
@@ -26,7 +26,7 @@ let cachedEvents: SunEvents | null = null;
  * Sun-rise/noon/set for the selected location's local calendar day.
  * Recomputed only when the day or location changes — not on every animation frame.
  */
-export const sunEvents: Readable<SunEvents> = derived([linearNow, location], ([$now, $loc]) => {
+export const sunEvents: Readable<SunEvents> = derived([clockNow, location], ([$now, $loc]) => {
 	const key = sunEventsCacheKey($now, $loc);
 	if (key !== cachedKey || cachedEvents === null) {
 		cachedKey = key;
@@ -35,9 +35,9 @@ export const sunEvents: Readable<SunEvents> = derived([linearNow, location], ([$
 	return cachedEvents;
 });
 
-/** Scaled solar hours for `$linearNow` at `$location`, or `null` in polar conditions. */
+/** Scaled solar hours for `$clockNow` at `$location`, or `null` in polar conditions. */
 export const solarNow: Readable<number | null> = derived(
-	[linearNow, sunEvents],
+	[clockNow, sunEvents],
 	([$now, $events]) => {
 		if ($events.polar !== null) return null;
 		return scaleToSolar($now, $events);

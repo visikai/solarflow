@@ -73,7 +73,7 @@ function handAnglesFromParts(parts: LocalTimeParts): ClockHandAngles {
 }
 
 /** Hand rotations for a wall-clock instant in the given IANA timezone. */
-export function linearHandAngles(instant: Date, timeZone: string): ClockHandAngles {
+export function clockHandAngles(instant: Date, timeZone: string): ClockHandAngles {
 	return handAnglesFromParts(localTimeParts(instant, timeZone));
 }
 
@@ -82,7 +82,7 @@ export function solarHandAngles(decimalHours: number): ClockHandAngles {
 	return handAnglesFromParts(decomposeDecimalHours(decimalHours));
 }
 
-export function formatLinearDigital(instant: Date, timeZone: string): string {
+export function formatClockDigital(instant: Date, timeZone: string): string {
 	return new Intl.DateTimeFormat('en-GB', {
 		timeZone,
 		hour: '2-digit',

@@ -366,8 +366,8 @@
 	.action-button {
 		cursor: pointer;
 		color: var(--color-bg);
-		background: var(--color-accent-linear);
-		border-color: var(--color-accent-linear);
+		background: var(--color-accent-clock);
+		border-color: var(--color-accent-clock);
 	}
 
 	.action-button:disabled {
@@ -449,7 +449,7 @@
 	}
 
 	.dropdown li button:focus-visible {
-		outline: 2px solid var(--color-accent-linear);
+		outline: 2px solid var(--color-accent-clock);
 		outline-offset: -2px;
 	}
 

@@ -3,7 +3,7 @@ import { readable, type Readable } from 'svelte/store';
 
 export { prefersReducedMotion } from '../motionPreference.js';
 
-function createLinearNowStore(): Readable<Date> {
+function createClockNowStore(): Readable<Date> {
 	let subscriberCount = 0;
 	let rafId: number | undefined;
 	let intervalId: ReturnType<typeof setInterval> | undefined;
@@ -71,6 +71,6 @@ function createLinearNowStore(): Readable<Date> {
 }
 
 /** Wall-clock now; one global rAF (or 1 s interval when reduced motion). */
-export const linearNow = createLinearNowStore();
+export const clockNow = createClockNowStore();
 
 export { solarNow } from './sunEvents.js';

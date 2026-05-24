@@ -93,14 +93,14 @@ export interface MappingCurveGuides {
 }
 
 export interface MappingCurveSeries {
-	linear: number[];
+	clock: number[];
 	solar: number[];
 	reference: number[];
 	guides: MappingCurveGuides;
 }
 
 /**
- * Sample `y = scaleToSolar(linear)` at one-minute resolution for the local calendar day.
+ * Sample `y = scaleToSolar(clock)` at one-minute resolution for the local calendar day.
  * Returns `null` in polar day/night.
  */
 export function sampleMappingCurve(
@@ -110,21 +110,21 @@ export function sampleMappingCurve(
 ): MappingCurveSeries | null {
 	if (events.polar !== null) return null;
 
-	const linear: number[] = [];
+	const clock: number[] = [];
 	const solar: number[] = [];
 	const reference: number[] = [];
 
 	for (let i = 0; i < MAPPING_CURVE_SAMPLES; i++) {
-		const linearH = i / 60;
-		const instant = dateAtLocalDecimalHours(events.date, linearH, loc.timezone);
-		linear.push(linearH);
+		const clockH = i / 60;
+		const instant = dateAtLocalDecimalHours(events.date, clockH, loc.timezone);
+		clock.push(clockH);
 		solar.push(scaleToSolar(instant, events));
-		reference.push(linearH);
+		reference.push(clockH);
 	}
 
 	const tz = loc.timezone;
 	return {
-		linear,
+		clock,
 		solar,
 		reference,
 		guides: {
@@ -138,7 +138,7 @@ export function sampleMappingCurve(
 
 /** uPlot-aligned data: shared x, mapping y, equinox reference y. */
 export function mappingCurveUplotData(series: MappingCurveSeries): [number[], number[], number[]] {
-	return [series.linear, series.solar, series.reference];
+	return [series.clock, series.solar, series.reference];
 }
 
 export { HOUR_TICKS };
