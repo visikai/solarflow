@@ -1,7 +1,4 @@
-import { derived, readable, type Readable } from 'svelte/store';
-import { scaleToSolar } from '../scaling.js';
-import { computeSunEvents } from '../sun.js';
-import { location } from './location.js';
+import { readable, type Readable } from 'svelte/store';
 
 function prefersReducedMotion(): boolean {
 	if (typeof window === 'undefined' || !window.matchMedia) return false;
@@ -52,7 +49,10 @@ function createLinearNowStore(): Readable<Date> {
 		if (subscriberCount === 1) {
 			tick();
 			if (typeof window !== 'undefined') {
-				schedule();
+				// Defer rAF so the first paint is not blocked by chart setup + store churn.
+				requestAnimationFrame(() => {
+					if (subscriberCount > 0) schedule();
+				});
 			}
 			if (typeof window !== 'undefined' && window.matchMedia) {
 				const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -75,9 +75,4 @@ function createLinearNowStore(): Readable<Date> {
 /** Wall-clock now; one global rAF (or 1 s interval when reduced motion). */
 export const linearNow = createLinearNowStore();
 
-/** Scaled solar hours for `$linearNow` at `$location`, or `null` in polar conditions. */
-export const solarNow: Readable<number | null> = derived([linearNow, location], ([$now, $loc]) => {
-	const events = computeSunEvents($loc, $now);
-	if (events.polar !== null) return null;
-	return scaleToSolar($now, events);
-});
+export { solarNow } from './sunEvents.js';
