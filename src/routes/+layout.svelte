@@ -1,13 +1,13 @@
 <script lang="ts">
+	import { assets } from '$app/paths';
 	import '../app.css';
 	import '$lib/stores/theme.js';
-	import favicon from '$lib/assets/favicon.svg';
 
 	let { children } = $props();
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href="{assets}/favicon.svg" />
 </svelte:head>
 
 {@render children()}
