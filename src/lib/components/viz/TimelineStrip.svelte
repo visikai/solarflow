@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { scaleToLinear } from '$lib/scaling.js';
-	import { computeSunEvents } from '$lib/sun.js';
 	import { location } from '$lib/stores/location.js';
+	import { sunEvents } from '$lib/stores/sunEvents.js';
 	import { linearNow, solarNow } from '$lib/stores/time.js';
 	import type { SunEvents } from '$lib/types.js';
 
@@ -12,7 +12,7 @@
 	const TICK_TOP = 12;
 	const TICK_H = 40;
 
-	let events = $derived(computeSunEvents($location, $linearNow));
+	let events = $derived($sunEvents);
 	let polar = $derived(events.polar);
 
 	function localDecimalHours(instant: Date, timeZone: string): number {

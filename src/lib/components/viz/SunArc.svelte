@@ -5,8 +5,8 @@
 		sunSampleToDiagram,
 		type SunArcDiagramLayout
 	} from '$lib/sky.js';
-	import { computeSunEvents } from '$lib/sun.js';
 	import { location } from '$lib/stores/location.js';
+	import { sunEvents } from '$lib/stores/sunEvents.js';
 	import { linearNow } from '$lib/stores/time.js';
 	import SunCalc from 'suncalc';
 
@@ -25,9 +25,9 @@
 		horizontalPadding: PAD_X
 	};
 
-	let events = $derived(computeSunEvents($location, $linearNow));
+	let events = $derived($sunEvents);
 	let polar = $derived(events.polar);
-	let arcSamples = $derived(sampleSunArc($location, $linearNow, 48));
+	let arcSamples = $derived(sampleSunArc($location, events.date, 48));
 	let arcPath = $derived(sunArcPathAboveHorizon(arcSamples, layout));
 
 	let currentPos = $derived(
