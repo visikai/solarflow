@@ -1,3 +1,5 @@
+import { localDecimalHours } from './mappingCurve.js';
+import { formatTimeInput } from './timeInput.js';
 import type { SunEvents } from './types.js';
 
 const MS_PER_HOUR = 3_600_000;
@@ -32,4 +34,42 @@ export function formatDurationHours(hours: number): string {
 
 export function formatDayNightSummary(daylightHours: number, nightHours: number): string {
 	return `${formatDurationHours(daylightHours)} daylight · ${formatDurationHours(nightHours)} night`;
+}
+
+export interface YearlyTooltipDaySection {
+	polarNote: string | null;
+	sunTimesLine: string | null;
+	dayNightLine: string;
+}
+
+/** Clock sunrise/sunset and day length lines for the yearly drift hover tooltip. */
+export function formatYearlyTooltipDaySection(
+	sun: SunEvents,
+	timeZone: string
+): YearlyTooltipDaySection {
+	const { daylightHours, nightHours } = clockDayNightHours(sun);
+	const dayNightLine = formatDayNightSummary(daylightHours, nightHours);
+
+	if (sun.polar === 'day') {
+		return {
+			polarNote: 'Polar day — sun stays above the horizon',
+			sunTimesLine: null,
+			dayNightLine
+		};
+	}
+	if (sun.polar === 'night') {
+		return {
+			polarNote: 'Polar night — sun stays below the horizon',
+			sunTimesLine: null,
+			dayNightLine
+		};
+	}
+
+	const sunrise = formatTimeInput(localDecimalHours(sun.sunrise, timeZone));
+	const sunset = formatTimeInput(localDecimalHours(sun.sunset, timeZone));
+	return {
+		polarNote: null,
+		sunTimesLine: `Sunrise ${sunrise} · Sunset ${sunset}`,
+		dayNightLine
+	};
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatYearlyTooltipDaySection } from '$lib/dayLength.js';
 	import { formatTimeInput, parseTimeInput } from '$lib/timeInput.js';
 	import {
 		computeYearlyDrift,
@@ -13,12 +14,14 @@
 		monthStartDaysOfYear,
 		SOLAR_EVENING_REF,
 		SOLAR_MORNING_REF,
+		sunEventsForDayOfYear,
 		workdaySolarOverlapFractions,
 		yearlyDriftUplotData,
 		yearlyDriftYRange,
 		type YearlyDriftSeries
 	} from '$lib/yearlyDrift.js';
 	import { location } from '$lib/stores/location.js';
+	import { get } from 'svelte/store';
 	import { onMount, untrack } from 'svelte';
 	import uPlot from 'uplot';
 	import 'uplot/dist/uPlot.min.css';
@@ -56,6 +59,9 @@
 
 	let tooltipVisible = $state(false);
 	let tooltipDate = $state('');
+	let tooltipPolarNote = $state<string | null>(null);
+	let tooltipSunTimesLine = $state<string | null>(null);
+	let tooltipDayNightLine = $state('');
 	let tooltipStartSolar = $state('');
 	let tooltipEndSolar = $state('');
 	let tooltipOverlap = $state('');
@@ -275,7 +281,15 @@
 			tooltipVisible = false;
 			return;
 		}
+		const loc = get(location);
 		tooltipDate = formatDoyLabel(chartState.year, doy);
+		const daySection = formatYearlyTooltipDaySection(
+			sunEventsForDayOfYear(loc, chartState.year, doy),
+			loc.timezone
+		);
+		tooltipPolarNote = daySection.polarNote;
+		tooltipSunTimesLine = daySection.sunTimesLine;
+		tooltipDayNightLine = daySection.dayNightLine;
 		tooltipStartSolar = start == null || !Number.isFinite(start) ? '—' : formatSolarHours(start);
 		tooltipEndSolar = end == null || !Number.isFinite(end) ? '—' : formatSolarHours(end);
 		if (start != null && end != null && Number.isFinite(start) && Number.isFinite(end)) {
@@ -471,7 +485,14 @@
 				workdayEnd
 			)} to solar time through {chartState.year}.
 			{#if tooltipVisible}
-				At {tooltipDate}, start maps to solar {tooltipStartSolar}, end to solar {tooltipEndSolar}.
+				At {tooltipDate},
+				{#if tooltipPolarNote}
+					{tooltipPolarNote}.
+				{/if}
+				{#if tooltipSunTimesLine}
+					{tooltipSunTimesLine}.
+				{/if}
+				{tooltipDayNightLine}. Start maps to solar {tooltipStartSolar}, end to solar {tooltipEndSolar}.
 				{#if tooltipOverlap}
 					{tooltipOverlap}.
 				{/if}
@@ -485,12 +506,23 @@
 		></div>
 		{#if tooltipVisible}
 			<div class="yearly-drift-tooltip" style:left="{tooltipLeft}px" style:top="{tooltipTop}px">
-				<strong>{tooltipDate}</strong><br />
-				Start {formatTimeInput(workdayStart)} → solar {tooltipStartSolar}<br />
-				End {formatTimeInput(workdayEnd)} → solar {tooltipEndSolar}
-				{#if tooltipOverlap}
-					<br />{tooltipOverlap}
-				{/if}
+				<p class="tooltip-date"><strong>{tooltipDate}</strong></p>
+				<div class="tooltip-day">
+					{#if tooltipPolarNote}
+						<p class="tooltip-polar">{tooltipPolarNote}</p>
+					{/if}
+					{#if tooltipSunTimesLine}
+						<p>{tooltipSunTimesLine}</p>
+					{/if}
+					<p>{tooltipDayNightLine}</p>
+				</div>
+				<div class="tooltip-workday" aria-label="Workday mapping">
+					<p>Start {formatTimeInput(workdayStart)} → solar {tooltipStartSolar}</p>
+					<p>End {formatTimeInput(workdayEnd)} → solar {tooltipEndSolar}</p>
+					{#if tooltipOverlap}
+						<p class="tooltip-overlap">{tooltipOverlap}</p>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</div>
@@ -559,15 +591,44 @@
 		position: absolute;
 		pointer-events: none;
 		z-index: 2;
-		padding: 0.35rem 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		max-width: min(20rem, calc(100vw - 2rem));
+		padding: 0.4rem 0.55rem;
 		font-size: 0.75rem;
 		line-height: 1.4;
+		font-variant-numeric: tabular-nums;
 		border-radius: 0.25rem;
 		background: color-mix(in srgb, var(--color-bg) 92%, var(--color-fg));
 		border: 1px solid var(--color-grid);
 		box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
-		white-space: nowrap;
 		transform: translateY(-100%);
+	}
+
+	.yearly-drift-tooltip p {
+		margin: 0;
+	}
+
+	.tooltip-date strong {
+		font-weight: 600;
+	}
+
+	.tooltip-day {
+		color: var(--color-muted);
+	}
+
+	.tooltip-polar {
+		font-style: italic;
+	}
+
+	.tooltip-workday {
+		padding-top: 0.3rem;
+		border-top: 1px solid var(--color-grid);
+	}
+
+	.tooltip-overlap {
+		color: var(--color-muted);
 	}
 
 	.yearly-drift-dst-note {

@@ -1,7 +1,7 @@
 import { dateAtLocalDecimalHours } from './mappingCurve.js';
 import { hoursApart, scaleToSolar } from './scaling.js';
 import { computeSunEvents } from './sun.js';
-import type { Location } from './types.js';
+import type { Location, SunEvents } from './types.js';
 
 export const DEFAULT_WORKDAY_START = 9;
 export const DEFAULT_WORKDAY_END = 17;
@@ -108,10 +108,7 @@ export function computeYearlyDrift(loc: Location, params: YearlyDriftParams): Ye
 	const eveningRef: number[] = [];
 
 	for (let doy = 1; doy <= n; doy++) {
-		const { month, day } = doyToMonthDay(year, doy);
-		const rough = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-		const noon = dateAtLocalDecimalHours(rough, 12, loc.timezone);
-		const events = computeSunEvents(loc, noon);
+		const events = sunEventsForDayOfYear(loc, year, doy);
 
 		dayOfYear.push(doy);
 		workdayStartSolar.push(solarAtLocalHour(loc, events.date, events, workdayStart));
@@ -153,6 +150,14 @@ export function formatSolarHours(hours: number): string {
 	const h = Math.floor(wrapped);
 	const m = Math.round((wrapped - h) * 60) % 60;
 	return `${h}:${String(m).padStart(2, '0')}`;
+}
+
+/** Sun times for a 1-based day-of-year at `loc` (same anchor as {@link computeYearlyDrift}). */
+export function sunEventsForDayOfYear(loc: Location, year: number, doy: number): SunEvents {
+	const { month, day } = doyToMonthDay(year, doy);
+	const rough = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+	const noon = dateAtLocalDecimalHours(rough, 12, loc.timezone);
+	return computeSunEvents(loc, noon);
 }
 
 /** Short calendar label for a day-of-year (e.g. "Dec 21"). */

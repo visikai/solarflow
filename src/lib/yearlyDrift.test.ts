@@ -8,6 +8,7 @@ import {
 	locationObservesDst,
 	maxYearlyDriftFromClock,
 	monthStartDaysOfYear,
+	sunEventsForDayOfYear,
 	workdaySolarOverlapFractions,
 	yearlyDriftYRange,
 	YEARLY_DRIFT_Y_RANGE,
@@ -70,6 +71,22 @@ describe('currentDayOfYear', () => {
 	it('returns local day-of-year for the same calendar year', () => {
 		const instant = new Date('2024-06-15T12:00:00-04:00');
 		expect(currentDayOfYear('America/New_York', 2024, instant)).toBe(167);
+	});
+});
+
+describe('sunEventsForDayOfYear', () => {
+	it('matches computeYearlyDrift anchor for the same day', () => {
+		const fromHelper = sunEventsForDayOfYear(NEW_YORK, 2024, 80);
+		const series = computeYearlyDrift(NEW_YORK, {
+			year: 2024,
+			workdayStart: DEFAULT_WORKDAY_START,
+			workdayEnd: DEFAULT_WORKDAY_END
+		});
+		const doy = 80;
+		const idx = series.dayOfYear.indexOf(doy);
+		expect(idx).toBeGreaterThanOrEqual(0);
+		expect(fromHelper.polar).toBeNull();
+		expect(fromHelper.sunrise.getTime()).toBeLessThan(fromHelper.sunset.getTime());
 	});
 });
 

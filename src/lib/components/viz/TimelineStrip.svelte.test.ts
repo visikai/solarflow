@@ -69,8 +69,10 @@ describe('TimelineStrip', () => {
 			timezone: 'America/New_York'
 		};
 		const sun = computeSunEvents(newYork, new Date('2024-03-20T14:30:00-04:00'));
-		const summary = formatDayNightSummary(...Object.values(clockDayNightHours(sun)));
-		expect(summary).toBe('12h 9m daylight · 11h 51m night');
+		const { daylightHours, nightHours } = clockDayNightHours(sun);
+		expect(formatDayNightSummary(daylightHours, nightHours)).toBe(
+			'12h 9m daylight · 11h 51m night'
+		);
 	});
 
 	it('shows clock daylight and night hours between timeline rows', () => {

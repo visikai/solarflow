@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { clockDayNightHours, formatDayNightSummary, formatDurationHours } from './dayLength.js';
+import {
+	clockDayNightHours,
+	formatDayNightSummary,
+	formatDurationHours,
+	formatYearlyTooltipDaySection
+} from './dayLength.js';
 import { computeSunEvents } from './sun.js';
 import type { Location } from './types.js';
 
@@ -34,6 +39,30 @@ describe('clockDayNightHours', () => {
 		const summer = computeSunEvents(polarLoc, new Date('2024-06-21T12:00:00+02:00'));
 		expect(summer.polar).toBe('day');
 		expect(clockDayNightHours(summer)).toEqual({ daylightHours: 24, nightHours: 0 });
+	});
+});
+
+describe('formatYearlyTooltipDaySection', () => {
+	it('formats sunrise, sunset, and day length for a normal day', () => {
+		const events = computeSunEvents(NYC, new Date('2024-03-20T12:00:00-04:00'));
+		const section = formatYearlyTooltipDaySection(events, NYC.timezone);
+		expect(section.polarNote).toBeNull();
+		expect(section.sunTimesLine).toMatch(/^Sunrise \d{2}:\d{2} · Sunset \d{2}:\d{2}$/);
+		expect(section.dayNightLine).toMatch(/daylight · .* night$/);
+	});
+
+	it('omits sun times and notes polar day', () => {
+		const polarLoc: Location = {
+			name: 'Longyearbyen',
+			latitude: 78.2232,
+			longitude: 15.6267,
+			timezone: 'Arctic/Longyearbyen'
+		};
+		const summer = computeSunEvents(polarLoc, new Date('2024-06-21T12:00:00+02:00'));
+		const section = formatYearlyTooltipDaySection(summer, polarLoc.timezone);
+		expect(section.polarNote).toContain('Polar day');
+		expect(section.sunTimesLine).toBeNull();
+		expect(section.dayNightLine).toBe('24h daylight · 0m night');
 	});
 });
 
