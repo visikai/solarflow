@@ -60,9 +60,16 @@
 	.app-header {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1.5rem;
+		gap: 0.75rem;
+		padding: 1rem;
 		border-bottom: 1px solid var(--color-border);
+	}
+
+	@media (min-width: 48rem) {
+		.app-header {
+			gap: 1rem;
+			padding: 1.5rem;
+		}
 	}
 
 	.app-header-row {
@@ -111,7 +118,20 @@
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 1rem;
-		padding: 1.5rem;
+		padding: 1rem;
+	}
+
+	@media (min-width: 48rem) {
+		.app-main {
+			padding: 1.5rem;
+		}
+	}
+
+	@media (min-width: 64rem) {
+		.app-main {
+			grid-template-columns: 1fr 1fr;
+			gap: 1.25rem;
+		}
 	}
 
 	.viz-zone {

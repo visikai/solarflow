@@ -237,11 +237,19 @@
 	.location-picker {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1rem;
+		gap: 0.75rem;
+		padding: 0.75rem;
 		border: 1px solid var(--color-border);
 		border-radius: 0.5rem;
 		background: var(--color-bg);
+		min-width: 0;
+	}
+
+	@media (min-width: 48rem) {
+		.location-picker {
+			gap: 1rem;
+			padding: 1rem;
+		}
 	}
 
 	.current {
@@ -261,33 +269,63 @@
 	.coords {
 		font-size: 0.875rem;
 		color: var(--color-border);
+		overflow-wrap: anywhere;
 	}
 
 	.controls {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-		align-items: center;
+		flex-direction: column;
+		gap: 0.75rem;
+		align-items: stretch;
+	}
+
+	@media (min-width: 40rem) {
+		.controls {
+			flex-flow: row wrap;
+			align-items: flex-end;
+			gap: 1rem;
+		}
 	}
 
 	.field {
 		display: flex;
 		flex-direction: column;
 		gap: 0.375rem;
-		min-width: 12rem;
+		width: 100%;
+		min-width: 0;
 		font-size: 0.875rem;
 		font-weight: 600;
 	}
 
+	@media (min-width: 40rem) {
+		.field {
+			flex: 1 1 12rem;
+			width: auto;
+			min-width: 12rem;
+		}
+
+		.field.search {
+			flex: 2 1 16rem;
+		}
+	}
+
 	select,
 	input[type='search'],
-	button {
+	.field.geo button {
+		width: 100%;
+		max-width: 100%;
 		font: inherit;
 		color: var(--color-fg);
 		background: var(--color-bg);
 		border: 1px solid var(--color-border);
 		border-radius: 0.25rem;
 		padding: 0.375rem 0.5rem;
+	}
+
+	@media (min-width: 40rem) {
+		.field.geo button {
+			width: auto;
+		}
 	}
 
 	button {
