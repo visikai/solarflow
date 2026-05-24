@@ -16,6 +16,7 @@
 		"pyproject",
 		"pyupgrade",
 		"solarflow",
-		"testpaths"
+		"testpaths",
+		"vitest"
 	]
 }
