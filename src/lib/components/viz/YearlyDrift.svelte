@@ -10,6 +10,7 @@
 		formatSolarHours,
 		workdaySolarOverlapFractions,
 		yearlyDriftUplotData,
+		yearlyDriftYRange,
 		type YearlyDriftSeries
 	} from '$lib/yearlyDrift.js';
 	import { location } from '$lib/stores/location.js';
@@ -70,7 +71,11 @@
 		year: new Date().getFullYear()
 	};
 
-	function readColors(el: HTMLElement): ChartColors {
+	function colorSource(): HTMLElement {
+		return chartEl ?? document.documentElement;
+	}
+
+	function readColors(el: HTMLElement = colorSource()): ChartColors {
 		const style = getComputedStyle(el);
 		return {
 			fg: style.getPropertyValue('--color-fg').trim() || '#1a1a1a',
@@ -136,7 +141,7 @@
 		tooltipTop = top + root.top - host.top - 8;
 	}
 
-	function buildOptions(width: number): uPlot.Options {
+	function buildOptions(width: number, yRange: { min: number; max: number }): uPlot.Options {
 		const { colors } = chartState;
 		return {
 			width,
@@ -155,7 +160,7 @@
 			},
 			scales: {
 				x: { min: 1, max: series?.dayOfYear.length ?? 365 },
-				y: { min: 0, max: 24 }
+				y: { min: yRange.min, max: yRange.max }
 			},
 			axes: [
 				{
@@ -206,19 +211,14 @@
 		};
 	}
 
-	function applyColors(u: uPlot): void {
-		chartState.colors = readColors(u.root);
-		const { colors } = chartState;
-		u.axes[0].stroke = colors.fg;
-		u.axes[0].grid!.stroke = colors.grid;
-		u.axes[0].ticks!.stroke = colors.grid;
-		u.axes[1].stroke = colors.fg;
-		u.axes[1].grid!.stroke = colors.grid;
-		u.axes[1].ticks!.stroke = colors.grid;
-		u.series[1].stroke = colors.linear;
-		u.series[2].stroke = colors.linear;
-		u.series[3].stroke = colors.solar;
-		u.series[4].stroke = colors.solar;
+	function rebuildChartForTheme(): void {
+		if (!chartEl || !plot || !series) return;
+		const data = plot.data;
+		const yRange = yearlyDriftYRange(series);
+		plot.destroy();
+		plot = undefined;
+		chartState.colors = readColors();
+		plot = new uPlot(buildOptions(Math.max(chartEl.clientWidth, 280), yRange), data, chartEl);
 	}
 
 	function refreshChart(): void {
@@ -233,14 +233,16 @@
 		});
 
 		const data = yearlyDriftUplotData(series);
+		const yRange = yearlyDriftYRange(series);
 		const width = Math.max(chartEl.clientWidth, 280);
 
 		if (plot) {
 			plot.setData(data, false);
 			plot.setScale('x', { min: 1, max: series.dayOfYear.length });
+			plot.setScale('y', yRange);
 		} else {
 			chartState.colors = readColors(chartEl);
-			plot = new uPlot(buildOptions(width), data, chartEl);
+			plot = new uPlot(buildOptions(width, yRange), data, chartEl);
 		}
 	}
 
@@ -254,10 +256,7 @@
 
 	onMount(() => {
 		const themeObserver = new MutationObserver(() => {
-			if (plot) {
-				applyColors(plot);
-				plot.redraw();
-			}
+			rebuildChartForTheme();
 		});
 		themeObserver.observe(document.documentElement, {
 			attributes: true,

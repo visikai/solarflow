@@ -7,6 +7,7 @@ import {
 	formatNighttimeOverlapLabel,
 	maxYearlyDriftFromLinear,
 	workdaySolarOverlapFractions,
+	yearlyDriftYRange,
 	DEFAULT_WORKDAY_END,
 	DEFAULT_WORKDAY_START
 } from './yearlyDrift.js';
@@ -28,6 +29,20 @@ const REYKJAVIK: Location = {
 
 /** Task target is 30 min; suncalc + annual equation-of-time peaks ~32 min at the equator for 17:00. */
 const EQUATOR_MAX_DRIFT_H = 33 / 60;
+
+describe('yearlyDriftYRange', () => {
+	it('frames data instead of always using 0–24', () => {
+		const series = computeYearlyDrift(QUITO, {
+			year: 2024,
+			workdayStart: DEFAULT_WORKDAY_START,
+			workdayEnd: DEFAULT_WORKDAY_END
+		});
+		const { min, max } = yearlyDriftYRange(series);
+		expect(min).toBeGreaterThan(0);
+		expect(max).toBeLessThan(24);
+		expect(max - min).toBeGreaterThanOrEqual(4);
+	});
+});
 
 describe('computeYearlyDrift', () => {
 	it('covers 365 or 366 days', () => {

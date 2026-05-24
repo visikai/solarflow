@@ -91,6 +91,41 @@ export function yearlyDriftUplotData(
 	];
 }
 
+const Y_RANGE_MIN_SPAN = 4;
+
+/** Y-axis bounds that frame plotted solar hours with a little padding (not full 0–24). */
+export function yearlyDriftYRange(
+	series: YearlyDriftSeries,
+	paddingHours = 1
+): { min: number; max: number } {
+	const values: number[] = [];
+	for (const row of [
+		series.workdayStartSolar,
+		series.workdayEndSolar,
+		series.morningRef,
+		series.eveningRef
+	]) {
+		for (const v of row) {
+			if (v != null && Number.isFinite(v)) values.push(v);
+		}
+	}
+
+	if (values.length === 0) return { min: 0, max: 24 };
+
+	let min = Math.floor(Math.min(...values) - paddingHours);
+	let max = Math.ceil(Math.max(...values) + paddingHours);
+	min = Math.max(0, min);
+	max = Math.min(24, max);
+
+	if (max - min < Y_RANGE_MIN_SPAN) {
+		const mid = (min + max) / 2;
+		min = Math.max(0, Math.floor(mid - Y_RANGE_MIN_SPAN / 2));
+		max = Math.min(24, Math.ceil(mid + Y_RANGE_MIN_SPAN / 2));
+	}
+
+	return { min, max };
+}
+
 /** Format decimal solar hours as `H:MM` on a 24 h clock. */
 export function formatSolarHours(hours: number): string {
 	const wrapped = ((hours % 24) + 24) % 24;
