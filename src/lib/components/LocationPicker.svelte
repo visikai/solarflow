@@ -8,7 +8,7 @@
 	import { geocodeSuggest } from '$lib/geocode.js';
 	import { getBrowserLocation } from '$lib/geolocation.js';
 	import { PRESETS } from '$lib/presets.js';
-	import { location } from '$lib/stores/location.js';
+	import { loadPresetIndex, location, persistPresetIndex } from '$lib/stores/location.js';
 	import type { Location } from '$lib/types.js';
 
 	const SEARCH_DEBOUNCE_MS = 400;
@@ -37,6 +37,8 @@
 	}
 
 	function selectLocation(loc: Location): void {
+		const presetIndex = presetIndexFor(loc);
+		persistPresetIndex(presetIndex >= 0 ? presetIndex : null);
 		location.set(loc);
 		searchQuery = '';
 		searchResults = [];
@@ -49,6 +51,7 @@
 		const select = event.currentTarget as HTMLSelectElement;
 		const index = Number.parseInt(select.value, 10);
 		if (index >= 0 && index < PRESETS.length) {
+			persistPresetIndex(index);
 			selectLocation(PRESETS[index]);
 		}
 	}
@@ -152,7 +155,9 @@
 	}
 
 	onMount(() => {
-		void useMyLocation();
+		if (loadPresetIndex() === null) {
+			void useMyLocation();
+		}
 	});
 </script>
 
@@ -223,7 +228,7 @@
 		</label>
 
 		<div class="field geo">
-			<button type="button" onclick={useMyLocation} disabled={geoLoading}>
+			<button type="button" class="action-button" onclick={useMyLocation} disabled={geoLoading}>
 				{geoLoading ? 'Locating…' : 'Use my location'}
 			</button>
 			{#if geoError}
@@ -263,12 +268,12 @@
 		font-size: 0.75rem;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
-		color: var(--color-border);
+		color: var(--color-muted);
 	}
 
 	.coords {
 		font-size: 0.875rem;
-		color: var(--color-border);
+		color: var(--color-muted);
 		overflow-wrap: anywhere;
 	}
 
@@ -311,33 +316,41 @@
 
 	select,
 	input[type='search'],
-	.field.geo button {
+	.action-button {
 		width: 100%;
 		max-width: 100%;
 		font: inherit;
-		color: var(--color-fg);
-		background: var(--color-bg);
 		border: 1px solid var(--color-border);
 		border-radius: 0.25rem;
 		padding: 0.375rem 0.5rem;
 	}
 
+	select,
+	input[type='search'] {
+		color: var(--color-fg);
+		background: var(--color-bg);
+	}
+
+	.action-button {
+		cursor: pointer;
+		color: var(--color-bg);
+		background: var(--color-accent-linear);
+		border-color: var(--color-accent-linear);
+	}
+
+	.action-button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
 	@media (min-width: 40rem) {
-		.field.geo button {
+		.action-button {
 			width: auto;
 		}
 	}
 
-	button {
+	.dropdown li button {
 		cursor: pointer;
-		background: var(--color-accent-linear);
-		color: var(--color-bg);
-		border-color: var(--color-accent-linear);
-	}
-
-	button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
 	}
 
 	.search-wrap {

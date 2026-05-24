@@ -4,7 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GeolocationDeniedError } from '../errors.js';
 import LocationPicker from './LocationPicker.svelte';
 import { PRESETS } from '../presets.js';
-import { LOCATION_STORAGE_KEY, location } from '../stores/location.js';
+import {
+	LOCATION_STORAGE_KEY,
+	PRESET_STORAGE_KEY,
+	loadPresetIndex,
+	location
+} from '../stores/location.js';
 import type { Location } from '../types.js';
 
 const LONDON_INDEX = PRESETS.findIndex((p) => p.name === 'London');
@@ -73,12 +78,23 @@ describe('LocationPicker', () => {
 		expect(within(current!).getByText(/35\.6762°/)).toBeTruthy();
 	});
 
-	it('attempts geolocation on mount', async () => {
+	it('attempts geolocation on mount when no preset is saved', async () => {
 		render(LocationPicker);
 
 		await waitFor(() => {
 			expect(getBrowserLocation).toHaveBeenCalled();
 		});
+	});
+
+	it('skips geolocation on mount when a preset index is saved', async () => {
+		storage.setItem(PRESET_STORAGE_KEY, String(LONDON_INDEX));
+
+		render(LocationPicker);
+
+		await vi.advanceTimersByTimeAsync(0);
+
+		expect(getBrowserLocation).not.toHaveBeenCalled();
+		expect(loadPresetIndex()).toBe(LONDON_INDEX);
 	});
 
 	it('keeps stored location when auto-geolocation fails', async () => {
@@ -113,6 +129,7 @@ describe('LocationPicker', () => {
 
 		expect(current).toEqual(PRESETS[LONDON_INDEX]);
 		expect(JSON.parse(storage.getItem(LOCATION_STORAGE_KEY)!)).toEqual(PRESETS[LONDON_INDEX]);
+		expect(storage.getItem(PRESET_STORAGE_KEY)).toBe(String(LONDON_INDEX));
 
 		const currentEl = screen.getByText('Selected').closest('p');
 		expect(within(currentEl!).getByText(PRESETS[LONDON_INDEX].name)).toBeTruthy();
