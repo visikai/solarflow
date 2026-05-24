@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
 	computeYearlyDrift,
+	currentDayOfYear,
 	daysInYear,
 	doyToMonthDay,
-	formatDaytimeOverlapLabel,
-	formatNighttimeOverlapLabel,
+	formatWorkhoursOverlapLabel,
+	locationObservesDst,
 	maxYearlyDriftFromLinear,
+	monthStartDaysOfYear,
 	workdaySolarOverlapFractions,
 	yearlyDriftYRange,
+	YEARLY_DRIFT_Y_RANGE,
 	DEFAULT_WORKDAY_END,
 	DEFAULT_WORKDAY_START
 } from './yearlyDrift.js';
@@ -27,20 +30,46 @@ const REYKJAVIK: Location = {
 	timezone: 'Atlantic/Reykjavik'
 };
 
+const NEW_YORK: Location = {
+	name: 'New York',
+	latitude: 40.7128,
+	longitude: -74.006,
+	timezone: 'America/New_York'
+};
+
 /** Task target is 30 min; suncalc + annual equation-of-time peaks ~32 min at the equator for 17:00. */
 const EQUATOR_MAX_DRIFT_H = 33 / 60;
 
 describe('yearlyDriftYRange', () => {
-	it('frames data instead of always using 0–24', () => {
-		const series = computeYearlyDrift(QUITO, {
-			year: 2024,
-			workdayStart: DEFAULT_WORKDAY_START,
-			workdayEnd: DEFAULT_WORKDAY_END
-		});
-		const { min, max } = yearlyDriftYRange(series);
-		expect(min).toBeGreaterThan(0);
-		expect(max).toBeLessThan(24);
-		expect(max - min).toBeGreaterThanOrEqual(4);
+	it('always uses the full 0–24 h solar clock', () => {
+		expect(yearlyDriftYRange()).toEqual(YEARLY_DRIFT_Y_RANGE);
+	});
+});
+
+describe('monthStartDaysOfYear', () => {
+	it('returns the first day of each month', () => {
+		const starts = monthStartDaysOfYear(2024);
+		expect(starts).toHaveLength(12);
+		expect(starts[0]).toBe(1);
+		expect(doyToMonthDay(2024, starts[2])).toEqual({ month: 3, day: 1 });
+	});
+});
+
+describe('locationObservesDst', () => {
+	it('detects US daylight saving', () => {
+		expect(locationObservesDst(NEW_YORK.timezone, 2024)).toBe(true);
+	});
+
+	it('is false where offsets stay fixed', () => {
+		expect(locationObservesDst(QUITO.timezone, 2024)).toBe(false);
+		expect(locationObservesDst(REYKJAVIK.timezone, 2024)).toBe(false);
+	});
+});
+
+describe('currentDayOfYear', () => {
+	it('returns local day-of-year for the same calendar year', () => {
+		const instant = new Date('2024-06-15T12:00:00-04:00');
+		expect(currentDayOfYear('America/New_York', 2024, instant)).toBe(167);
 	});
 });
 
@@ -118,8 +147,12 @@ describe('workdaySolarOverlapFractions', () => {
 	});
 
 	it('formats tooltip labels', () => {
-		expect(formatDaytimeOverlapLabel(2 / 3)).toBe('Daytime: 67% of 6:00–18:00');
-		expect(formatNighttimeOverlapLabel(1 / 12)).toBe('Nighttime: 8% of 18:00–6:00');
+		expect(formatWorkhoursOverlapLabel(workdaySolarOverlapFractions(8, 16))).toBe(
+			'Workhours = 67% of daytime'
+		);
+		expect(formatWorkhoursOverlapLabel(workdaySolarOverlapFractions(7, 19))).toBe(
+			'Workhours = 92% of daytime and 8% of nighttime'
+		);
 	});
 });
 

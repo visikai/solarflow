@@ -8,6 +8,9 @@ export const DEFAULT_WORKDAY_END = 17;
 export const SOLAR_MORNING_REF = 6;
 export const SOLAR_EVENING_REF = 18;
 
+/** Fixed y-axis for the yearly drift chart (full solar clock). */
+export const YEARLY_DRIFT_Y_RANGE = { min: 0, max: 24 } as const;
+
 export interface YearlyDriftParams {
 	year: number;
 	workdayStart: number;
@@ -24,6 +27,54 @@ export interface YearlyDriftSeries {
 
 export function daysInYear(year: number): number {
 	return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365;
+}
+
+/** Day-of-year (1-based) for the first day of each month in `year`. */
+export function monthStartDaysOfYear(year: number): number[] {
+	const starts: number[] = [];
+	const n = daysInYear(year);
+	for (let doy = 1; doy <= n; doy++) {
+		if (doyToMonthDay(year, doy).day === 1) starts.push(doy);
+	}
+	return starts;
+}
+
+function tzOffsetMinutes(timeZone: string, instant: Date): number {
+	const utc = new Date(instant.toLocaleString('en-US', { timeZone: 'UTC' }));
+	const local = new Date(instant.toLocaleString('en-US', { timeZone }));
+	return (local.getTime() - utc.getTime()) / 60_000;
+}
+
+/** True when `timezone` uses different UTC offsets at some point in `year`. */
+export function locationObservesDst(timeZone: string, year: number): boolean {
+	const offsets = new Set<number>();
+	for (let month = 0; month < 12; month++) {
+		offsets.add(tzOffsetMinutes(timeZone, new Date(Date.UTC(year, month, 15, 12, 0, 0))));
+	}
+	return offsets.size > 1;
+}
+
+/** Local calendar day-of-year for `instant` in `timeZone` when its year matches `year`. */
+export function currentDayOfYear(
+	timeZone: string,
+	year: number,
+	instant: Date = new Date()
+): number | null {
+	const parts = new Intl.DateTimeFormat('en-CA', {
+		timeZone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit'
+	}).formatToParts(instant);
+	const y = Number(parts.find((p) => p.type === 'year')!.value);
+	if (y !== year) return null;
+	const month = Number(parts.find((p) => p.type === 'month')!.value);
+	const day = Number(parts.find((p) => p.type === 'day')!.value);
+	let doy = 0;
+	for (let m = 1; m < month; m++) {
+		doy += new Date(Date.UTC(year, m, 0)).getUTCDate();
+	}
+	return doy + day;
 }
 
 /** Gregorian month/day for 1-based day-of-year. */
@@ -78,52 +129,22 @@ export function computeYearlyDrift(loc: Location, params: YearlyDriftParams): Ye
 	};
 }
 
-/** uPlot data: x = day of year; workday lines + constant solar 06 / 18 references. */
+/** uPlot data: x, solar 06/18 refs (daytime band), then workday start/end (work band). */
 export function yearlyDriftUplotData(
 	series: YearlyDriftSeries
-): [number[], (number | null)[], (number | null)[], number[], number[]] {
+): [number[], number[], number[], (number | null)[], (number | null)[]] {
 	return [
 		series.dayOfYear,
-		series.workdayStartSolar,
-		series.workdayEndSolar,
 		series.morningRef,
-		series.eveningRef
+		series.eveningRef,
+		series.workdayStartSolar,
+		series.workdayEndSolar
 	];
 }
 
-const Y_RANGE_MIN_SPAN = 4;
-
-/** Y-axis bounds that frame plotted solar hours with a little padding (not full 0–24). */
-export function yearlyDriftYRange(
-	series: YearlyDriftSeries,
-	paddingHours = 1
-): { min: number; max: number } {
-	const values: number[] = [];
-	for (const row of [
-		series.workdayStartSolar,
-		series.workdayEndSolar,
-		series.morningRef,
-		series.eveningRef
-	]) {
-		for (const v of row) {
-			if (v != null && Number.isFinite(v)) values.push(v);
-		}
-	}
-
-	if (values.length === 0) return { min: 0, max: 24 };
-
-	let min = Math.floor(Math.min(...values) - paddingHours);
-	let max = Math.ceil(Math.max(...values) + paddingHours);
-	min = Math.max(0, min);
-	max = Math.min(24, max);
-
-	if (max - min < Y_RANGE_MIN_SPAN) {
-		const mid = (min + max) / 2;
-		min = Math.max(0, Math.floor(mid - Y_RANGE_MIN_SPAN / 2));
-		max = Math.min(24, Math.ceil(mid + Y_RANGE_MIN_SPAN / 2));
-	}
-
-	return { min, max };
+/** Y-axis bounds for the yearly drift chart (always full 0–24 h solar clock). */
+export function yearlyDriftYRange(): { min: number; max: number } {
+	return { ...YEARLY_DRIFT_Y_RANGE };
 }
 
 /** Format decimal solar hours as `H:MM` on a 24 h clock. */
@@ -199,22 +220,15 @@ export function workdaySolarOverlapFractions(
 	};
 }
 
-export function formatDaytimeOverlapLabel(
-	fraction: number,
-	dayStart = SOLAR_MORNING_REF,
-	dayEnd = SOLAR_EVENING_REF
-): string {
-	const pct = Math.round(fraction * 100);
-	return `Daytime: ${pct}% of ${formatSolarHours(dayStart)}–${formatSolarHours(dayEnd)}`;
-}
-
-export function formatNighttimeOverlapLabel(
-	fraction: number,
-	dayEnd = SOLAR_EVENING_REF,
-	dayStart = SOLAR_MORNING_REF
-): string {
-	const pct = Math.round(fraction * 100);
-	return `Nighttime: ${pct}% of ${formatSolarHours(dayEnd)}–${formatSolarHours(dayStart)}`;
+/** Tooltip line for work hours vs fixed solar daytime / nighttime windows. */
+export function formatWorkhoursOverlapLabel(overlap: WorkdaySolarOverlap): string {
+	const dayPct = Math.round(overlap.daytimeFraction * 100);
+	let label = `Workhours = ${dayPct}% of daytime`;
+	if (overlap.hasNightOverlap) {
+		const nightPct = Math.round(overlap.nighttimeFraction * 100);
+		label += ` and ${nightPct}% of nighttime`;
+	}
+	return label;
 }
 
 /** Max absolute deviation from input linear hour across the year (equator stability test). */
