@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import LocationPicker from '$lib/components/LocationPicker.svelte';
+	import Logo from '$lib/components/Logo.svelte';
 	import DualClocks from '$lib/components/viz/DualClocks.svelte';
 	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
 	import YearlyDrift from '$lib/components/viz/YearlyDrift.svelte';
@@ -7,8 +9,14 @@
 
 <div class="app-shell">
 	<header class="app-header">
-		<h1 class="app-title">solarflow</h1>
-		<LocationPicker />
+		<div class="app-content">
+			<div class="app-header-top">
+				<a class="app-brand" href={resolve('/')}>
+					<Logo />
+				</a>
+			</div>
+			<LocationPicker />
+		</div>
 	</header>
 
 	<main class="app-main">
@@ -30,54 +38,71 @@
 
 <style>
 	.app-shell {
+		--content-max-width: 56rem;
 		display: flex;
 		flex-direction: column;
 		min-height: 100vh;
 	}
 
 	.app-header {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		padding: 1rem;
+		width: 100%;
 		border-bottom: 1px solid var(--color-border);
 	}
 
+	.app-content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		width: 100%;
+		max-width: var(--content-max-width);
+		margin: 0 auto;
+		padding: 1rem;
+		box-sizing: border-box;
+	}
+
 	@media (min-width: 48rem) {
-		.app-header {
+		.app-content {
 			gap: 1rem;
 			padding: 1.5rem;
 		}
 	}
 
-	.app-title {
-		margin: 0;
-		font-size: 1.5rem;
-		font-weight: 600;
+	.app-header-top {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+	}
+
+	.app-brand {
+		display: block;
+		width: 100%;
+		max-width: 16rem;
+		line-height: 0;
+		text-decoration: none;
 	}
 
 	.app-main {
 		flex: 1;
-		display: grid;
-		grid-template-columns: 1fr;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 		gap: 1rem;
 		padding: 1rem;
+		width: 100%;
+		max-width: var(--content-max-width);
+		margin: 0 auto;
+		box-sizing: border-box;
 	}
 
 	@media (min-width: 48rem) {
 		.app-main {
 			padding: 1.5rem;
-		}
-	}
-
-	@media (min-width: 64rem) {
-		.app-main {
-			grid-template-columns: 1fr 1fr;
 			gap: 1.25rem;
 		}
 	}
 
 	.viz-zone {
+		width: 100%;
 		min-height: 8rem;
 		border: 1px dashed var(--color-grid);
 		border-radius: 0.5rem;
@@ -91,7 +116,6 @@
 	}
 
 	.viz-zone--yearly-drift {
-		grid-column: 1 / -1;
 		min-height: 22rem;
 	}
 </style>
