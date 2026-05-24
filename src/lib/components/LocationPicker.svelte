@@ -9,7 +9,12 @@
 	import { getBrowserLocation } from '$lib/geolocation.js';
 	import { PRESETS } from '$lib/presets.js';
 	import { loadPresetIndex, location, persistPresetIndex } from '$lib/stores/location.js';
+	import { cycleThemePreference, theme, themeToggleLabel } from '$lib/stores/theme.js';
 	import type { Location } from '$lib/types.js';
+
+	function toggleTheme(): void {
+		theme.update(cycleThemePreference);
+	}
 
 	const SEARCH_DEBOUNCE_MS = 400;
 
@@ -162,13 +167,30 @@
 </script>
 
 <div class="location-picker">
-	<p class="current">
-		<span class="label">Selected</span>
-		<strong>{$location.name}</strong>
-		<span class="coords">
-			{$location.latitude.toFixed(4)}°, {$location.longitude.toFixed(4)}° · {$location.timezone}
-		</span>
-	</p>
+	<div class="location-picker-header">
+		<p class="current">
+			<span class="label">Selected</span>
+			<strong>{$location.name}</strong>
+			<span class="coords">
+				{$location.latitude.toFixed(4)}°, {$location.longitude.toFixed(4)}° · {$location.timezone}
+			</span>
+		</p>
+		<button
+			type="button"
+			class="theme-toggle"
+			aria-label={themeToggleLabel($theme)}
+			aria-pressed={$theme === 'system' ? undefined : $theme === 'dark'}
+			title={themeToggleLabel($theme)}
+			onclick={toggleTheme}
+		>
+			<span class="theme-toggle__icon" aria-hidden="true">
+				{#if $theme === 'light'}☀{:else if $theme === 'dark'}☾{:else}◐{/if}
+			</span>
+			<span class="theme-toggle__label">
+				{$theme === 'system' ? 'System' : $theme === 'light' ? 'Light' : 'Dark'}
+			</span>
+		</button>
+	</div>
 
 	<div class="controls">
 		<label class="field">
@@ -257,8 +279,17 @@
 		}
 	}
 
+	.location-picker-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
 	.current {
 		margin: 0;
+		flex: 1;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.125rem;
@@ -316,7 +347,8 @@
 
 	select,
 	input[type='search'],
-	.action-button {
+	.action-button,
+	.theme-toggle {
 		width: 100%;
 		max-width: 100%;
 		font: inherit;
@@ -347,6 +379,27 @@
 		.action-button {
 			width: auto;
 		}
+	}
+
+	.theme-toggle {
+		flex-shrink: 0;
+		width: auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		cursor: pointer;
+		color: var(--color-fg);
+		background: var(--color-bg);
+	}
+
+	.theme-toggle:hover {
+		background: color-mix(in srgb, var(--color-bg) 88%, var(--color-fg));
+	}
+
+	.theme-toggle__icon {
+		font-size: 1rem;
+		line-height: 1;
 	}
 
 	.dropdown li button {

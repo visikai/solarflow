@@ -3,33 +3,11 @@
 	import DualClocks from '$lib/components/viz/DualClocks.svelte';
 	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
 	import YearlyDrift from '$lib/components/viz/YearlyDrift.svelte';
-	import { cycleThemePreference, theme, themeToggleLabel } from '$lib/stores/theme.js';
-
-	function toggleTheme(): void {
-		theme.update(cycleThemePreference);
-	}
 </script>
 
 <div class="app-shell">
 	<header class="app-header">
-		<div class="app-header-row">
-			<h1 class="app-title">solarflow</h1>
-			<button
-				type="button"
-				class="theme-toggle"
-				aria-label={themeToggleLabel($theme)}
-				aria-pressed={$theme === 'system' ? undefined : $theme === 'dark'}
-				title={themeToggleLabel($theme)}
-				onclick={toggleTheme}
-			>
-				<span class="theme-toggle__icon" aria-hidden="true">
-					{#if $theme === 'light'}☀{:else if $theme === 'dark'}☾{:else}◐{/if}
-				</span>
-				<span class="theme-toggle__label">
-					{$theme === 'system' ? 'System' : $theme === 'light' ? 'Light' : 'Dark'}
-				</span>
-			</button>
-		</div>
+		<h1 class="app-title">solarflow</h1>
 		<LocationPicker />
 	</header>
 
@@ -70,36 +48,6 @@
 			gap: 1rem;
 			padding: 1.5rem;
 		}
-	}
-
-	.app-header-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-
-	.theme-toggle {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.35rem 0.65rem;
-		font: inherit;
-		font-size: 0.875rem;
-		color: var(--color-fg);
-		background: var(--color-bg);
-		border: 1px solid var(--color-border);
-		border-radius: 0.375rem;
-		cursor: pointer;
-	}
-
-	.theme-toggle:hover {
-		background: color-mix(in srgb, var(--color-bg) 88%, var(--color-fg));
-	}
-
-	.theme-toggle__icon {
-		font-size: 1rem;
-		line-height: 1;
 	}
 
 	.app-title {
