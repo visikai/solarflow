@@ -76,7 +76,7 @@
 	.app-brand {
 		display: block;
 		width: 100%;
-		max-width: 16rem;
+		max-width: 12.5rem;
 		line-height: 0;
 		text-decoration: none;
 	}
