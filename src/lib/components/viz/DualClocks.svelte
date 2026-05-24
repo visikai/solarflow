@@ -60,16 +60,13 @@
 		const dist = R - 22;
 		const x = CX + dist * Math.cos(angle);
 		const y = CY + dist * Math.sin(angle);
-		let anchor = 'middle';
-		if (solarHour === 6) anchor = 'end';
-		if (solarHour === 18) anchor = 'start';
+		const anchor = 'middle';
 		return { x, y, anchor };
 	}
 
 	const solarLabels = [
-		{ hour: 6, text: 'sunrise' },
-		{ hour: 12, text: 'noon' },
-		{ hour: 18, text: 'sunset' }
+		{ hour: 6, text: 'sunrise/sunset' },
+		{ hour: 12, text: 'noon' }
 	] as const;
 </script>
 
@@ -274,7 +271,6 @@
 
 	.clock-panel:last-child .hand {
 		stroke: var(--color-accent-solar);
-		stroke-dasharray: 5 3;
 	}
 
 	.solar-label {
