@@ -10,7 +10,7 @@
 		type YearlyDriftSeries
 	} from '$lib/yearlyDrift.js';
 	import { location } from '$lib/stores/location.js';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import uPlot from 'uplot';
 	import 'uplot/dist/uPlot.min.css';
 
@@ -39,8 +39,9 @@
 	}
 
 	let chartEl: HTMLDivElement | undefined = $state();
-	let plot: uPlot | undefined = $state();
-	let series: YearlyDriftSeries | null = $state(null);
+	/** Non-reactive: uPlot instance must not retrigger $effect when assigned. */
+	let plot: uPlot | undefined;
+	let series: YearlyDriftSeries | null = null;
 
 	let tooltipVisible = $state(false);
 	let tooltipDate = $state('');
@@ -53,7 +54,8 @@
 	let workdayEnd = $state(DEFAULT_WORKDAY_END);
 	let year = $state(new Date().getFullYear());
 
-	const chartState = $state<{ colors: ChartColors; year: number }>({
+	/** Non-reactive: read by uPlot hooks only; must not retrigger $effect when updated. */
+	const chartState: { colors: ChartColors; year: number } = {
 		colors: {
 			fg: '#1a1a1a',
 			grid: '#d4d0c8',
@@ -62,7 +64,7 @@
 			solar: '#f97316'
 		},
 		year: new Date().getFullYear()
-	});
+	};
 
 	const yearOptions = $derived(
 		Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i)
@@ -212,6 +214,8 @@
 	}
 
 	function refreshChart(): void {
+		if (!chartEl) return;
+
 		const loc = $location;
 		chartState.year = year;
 		series = computeYearlyDrift(loc, {
@@ -219,7 +223,6 @@
 			workdayStart,
 			workdayEnd
 		});
-		if (!chartEl) return;
 
 		const data = yearlyDriftUplotData(series);
 		const width = Math.max(chartEl.clientWidth, 280);
@@ -239,12 +242,10 @@
 		void workdayEnd;
 		void year;
 		void chartEl;
-		refreshChart();
+		untrack(() => refreshChart());
 	});
 
 	onMount(() => {
-		refreshChart();
-
 		const themeObserver = new MutationObserver(() => {
 			if (plot) {
 				applyColors(plot);
@@ -256,12 +257,16 @@
 			attributeFilter: ['class', 'data-theme', 'style']
 		});
 
+		let chartWidth = 0;
 		const resizeObserver =
 			typeof ResizeObserver !== 'undefined' && chartEl
 				? new ResizeObserver(() => {
 						if (!plot || !chartEl) return;
 						const w = chartEl.clientWidth;
-						if (w > 0) plot.setSize({ width: w, height: CHART_HEIGHT });
+						if (w > 0 && w !== chartWidth) {
+							chartWidth = w;
+							plot.setSize({ width: w, height: CHART_HEIGHT });
+						}
 					})
 				: null;
 		if (chartEl) resizeObserver?.observe(chartEl);
@@ -282,7 +287,7 @@
 			<input
 				type="time"
 				value={formatTimeInput(workdayStart)}
-				oninput={(e) => (workdayStart = parseTimeInput(e.currentTarget.value))}
+				onchange={(e) => (workdayStart = parseTimeInput(e.currentTarget.value))}
 			/>
 		</label>
 		<label class="control">
@@ -290,7 +295,7 @@
 			<input
 				type="time"
 				value={formatTimeInput(workdayEnd)}
-				oninput={(e) => (workdayEnd = parseTimeInput(e.currentTarget.value))}
+				onchange={(e) => (workdayEnd = parseTimeInput(e.currentTarget.value))}
 			/>
 		</label>
 		<label class="control">

@@ -6,11 +6,11 @@
 		sampleMappingCurve,
 		type MappingCurveGuides
 	} from '$lib/mappingCurve.js';
-	import { computeSunEvents } from '$lib/sun.js';
 	import { location } from '$lib/stores/location.js';
+	import { sunEvents } from '$lib/stores/sunEvents.js';
 	import { linearNow, solarNow } from '$lib/stores/time.js';
 	import { get } from 'svelte/store';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import uPlot from 'uplot';
 	import 'uplot/dist/uPlot.min.css';
 
@@ -32,7 +32,8 @@
 
 	let rootEl: HTMLDivElement | undefined = $state();
 	let chartEl: HTMLDivElement | undefined = $state();
-	let plot: uPlot | undefined = $state();
+	/** Non-reactive: uPlot instance must not retrigger $effect when assigned. */
+	let plot: uPlot | undefined;
 	let polar = $state<'day' | 'night' | null>(null);
 	let chartState: ChartState = {
 		guides: null,
@@ -181,7 +182,7 @@
 	function refreshSeriesForLocation(): void {
 		const loc = $location;
 		const now = get(linearNow);
-		const events = computeSunEvents(loc, now);
+		const events = get(sunEvents);
 		if (events.polar !== null) {
 			polar = events.polar;
 			chartState.guides = null;
@@ -190,8 +191,10 @@
 			return;
 		}
 
+		if (!chartEl) return;
+
 		const sampled = sampleMappingCurve(loc, now, events);
-		if (!sampled || !chartEl) return;
+		if (!sampled) return;
 		polar = null;
 		chartState.guides = sampled.guides;
 		const data = mappingCurveUplotData(sampled);
@@ -223,12 +226,10 @@
 	$effect(() => {
 		void $location;
 		void chartEl;
-		refreshSeriesForLocation();
+		untrack(() => refreshSeriesForLocation());
 	});
 
 	onMount(() => {
-		refreshSeriesForLocation();
-
 		const unsubNow = linearNow.subscribe(() => {
 			syncCursor();
 		});
@@ -244,12 +245,16 @@
 			attributeFilter: ['class', 'data-theme', 'style']
 		});
 
+		let chartWidth = 0;
 		const resizeObserver =
 			typeof ResizeObserver !== 'undefined' && chartEl
 				? new ResizeObserver(() => {
 						if (!plot || !chartEl) return;
 						const size = Math.min(chartEl.clientWidth, CHART_SIZE);
-						if (size > 0) plot.setSize({ width: size, height: size });
+						if (size > 0 && size !== chartWidth) {
+							chartWidth = size;
+							plot.setSize({ width: size, height: size });
+						}
 					})
 				: null;
 		if (chartEl) resizeObserver?.observe(chartEl);
