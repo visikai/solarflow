@@ -1,15 +1,35 @@
 <script lang="ts">
 	import LocationPicker from '$lib/components/LocationPicker.svelte';
 	import DualClocks from '$lib/components/viz/DualClocks.svelte';
-	import SunArc from '$lib/components/viz/SunArc.svelte';
-	import MappingCurve from '$lib/components/viz/MappingCurve.svelte';
 	import TimelineStrip from '$lib/components/viz/TimelineStrip.svelte';
 	import YearlyDrift from '$lib/components/viz/YearlyDrift.svelte';
+	import { cycleThemePreference, theme, themeToggleLabel } from '$lib/stores/theme.js';
+
+	function toggleTheme(): void {
+		theme.update(cycleThemePreference);
+	}
 </script>
 
 <div class="app-shell">
 	<header class="app-header">
-		<h1 class="app-title">solarflow</h1>
+		<div class="app-header-row">
+			<h1 class="app-title">solarflow</h1>
+			<button
+				type="button"
+				class="theme-toggle"
+				aria-label={themeToggleLabel($theme)}
+				aria-pressed={$theme === 'system' ? undefined : $theme === 'dark'}
+				title={themeToggleLabel($theme)}
+				onclick={toggleTheme}
+			>
+				<span class="theme-toggle__icon" aria-hidden="true">
+					{#if $theme === 'light'}☀{:else if $theme === 'dark'}☾{:else}◐{/if}
+				</span>
+				<span class="theme-toggle__label">
+					{$theme === 'system' ? 'System' : $theme === 'light' ? 'Light' : 'Dark'}
+				</span>
+			</button>
+		</div>
 		<LocationPicker />
 	</header>
 
@@ -19,16 +39,6 @@
 		</section>
 		<section class="viz-zone viz-zone--clocks" data-viz="clocks" aria-label="Clocks">
 			<DualClocks />
-		</section>
-		<section class="viz-zone viz-zone--sun-arc" data-viz="sun-arc" aria-label="Sun arc">
-			<SunArc />
-		</section>
-		<section
-			class="viz-zone viz-zone--mapping-curve"
-			data-viz="mapping-curve"
-			aria-label="Mapping curve"
-		>
-			<MappingCurve />
 		</section>
 		<section
 			class="viz-zone viz-zone--yearly-drift"
@@ -55,6 +65,41 @@
 		border-bottom: 1px solid var(--color-border);
 	}
 
+	.app-header-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.theme-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.35rem 0.65rem;
+		font: inherit;
+		font-size: 0.875rem;
+		color: var(--color-fg);
+		background: var(--color-bg);
+		border: 1px solid var(--color-border);
+		border-radius: 0.375rem;
+		cursor: pointer;
+	}
+
+	.theme-toggle:hover {
+		background: color-mix(in srgb, var(--color-bg) 88%, var(--color-fg));
+	}
+
+	.theme-toggle:focus-visible {
+		outline: 2px solid var(--color-accent-linear);
+		outline-offset: 2px;
+	}
+
+	.theme-toggle__icon {
+		font-size: 1rem;
+		line-height: 1;
+	}
+
 	.app-title {
 		margin: 0;
 		font-size: 1.5rem;
@@ -77,8 +122,6 @@
 
 	.viz-zone--timeline,
 	.viz-zone--clocks,
-	.viz-zone--sun-arc,
-	.viz-zone--mapping-curve,
 	.viz-zone--yearly-drift {
 		padding: 0.75rem 1rem;
 		border-style: solid;
