@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		GeolocationDeniedError,
 		GeolocationTimeoutError,
@@ -149,6 +150,10 @@
 			highlightIndex = -1;
 		}, 150);
 	}
+
+	onMount(() => {
+		void useMyLocation();
+	});
 </script>
 
 <div class="location-picker">
@@ -173,15 +178,6 @@
 				{/each}
 			</select>
 		</label>
-
-		<div class="field geo">
-			<button type="button" onclick={useMyLocation} disabled={geoLoading}>
-				{geoLoading ? 'Locating…' : 'Use my location'}
-			</button>
-			{#if geoError}
-				<p class="error" role="alert">{geoError}</p>
-			{/if}
-		</div>
 
 		<label class="field search">
 			Search
@@ -225,6 +221,15 @@
 				<p class="error" role="alert">{searchError}</p>
 			{/if}
 		</label>
+
+		<div class="field geo">
+			<button type="button" onclick={useMyLocation} disabled={geoLoading}>
+				{geoLoading ? 'Locating…' : 'Use my location'}
+			</button>
+			{#if geoError}
+				<p class="error" role="alert">{geoError}</p>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -262,7 +267,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1rem;
-		align-items: flex-start;
+		align-items: center;
 	}
 
 	.field {

@@ -23,4 +23,11 @@ describe('PRESETS', () => {
 			);
 		}
 	});
+
+	it('orders major metros by rough population (Tokyo first)', () => {
+		expect(PRESETS[0].name).toBe('Tokyo');
+		const jakartaIndex = PRESETS.findIndex((p) => p.name === 'Jakarta');
+		expect(jakartaIndex).toBeGreaterThanOrEqual(0);
+		expect(jakartaIndex).toBeLessThan(5);
+	});
 });

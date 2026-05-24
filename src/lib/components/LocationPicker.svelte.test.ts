@@ -1,10 +1,13 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GeolocationDeniedError } from '../errors.js';
 import LocationPicker from './LocationPicker.svelte';
 import { PRESETS } from '../presets.js';
 import { LOCATION_STORAGE_KEY, location } from '../stores/location.js';
 import type { Location } from '../types.js';
+
+const LONDON_INDEX = PRESETS.findIndex((p) => p.name === 'London');
 
 const geocodeSuggest = vi.fn<(query: string) => Promise<Location[]>>();
 const getBrowserLocation = vi.fn<() => Promise<Location>>();
@@ -51,6 +54,7 @@ describe('LocationPicker', () => {
 		location.set(PRESETS[0]);
 		geocodeSuggest.mockReset();
 		getBrowserLocation.mockReset();
+		getBrowserLocation.mockRejectedValue(new GeolocationDeniedError());
 		vi.useFakeTimers();
 	});
 
@@ -66,14 +70,40 @@ describe('LocationPicker', () => {
 		const current = screen.getByText('Selected').closest('p');
 		expect(current).toBeTruthy();
 		expect(within(current!).getByText(PRESETS[0].name)).toBeTruthy();
-		expect(within(current!).getByText(/82\.5018°/)).toBeTruthy();
+		expect(within(current!).getByText(/35\.6762°/)).toBeTruthy();
+	});
+
+	it('attempts geolocation on mount', async () => {
+		render(LocationPicker);
+
+		await waitFor(() => {
+			expect(getBrowserLocation).toHaveBeenCalled();
+		});
+	});
+
+	it('keeps stored location when auto-geolocation fails', async () => {
+		const stored: Location = PRESETS[LONDON_INDEX];
+		storage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(stored));
+		location.set(stored);
+
+		render(LocationPicker);
+
+		await waitFor(() => {
+			expect(getBrowserLocation).toHaveBeenCalled();
+		});
+
+		const currentEl = screen.getByText('Selected').closest('p');
+		expect(within(currentEl!).getByText('London')).toBeTruthy();
 	});
 
 	it('selecting a preset updates the store and localStorage', async () => {
 		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 		render(LocationPicker);
 
-		await user.selectOptions(screen.getByRole('combobox', { name: 'Preset' }), '9'); // London
+		await user.selectOptions(
+			screen.getByRole('combobox', { name: 'Preset' }),
+			String(LONDON_INDEX)
+		);
 
 		let current: Location | undefined;
 		const unsub = location.subscribe((value) => {
@@ -81,11 +111,11 @@ describe('LocationPicker', () => {
 		});
 		unsub();
 
-		expect(current).toEqual(PRESETS[9]);
-		expect(JSON.parse(storage.getItem(LOCATION_STORAGE_KEY)!)).toEqual(PRESETS[9]);
+		expect(current).toEqual(PRESETS[LONDON_INDEX]);
+		expect(JSON.parse(storage.getItem(LOCATION_STORAGE_KEY)!)).toEqual(PRESETS[LONDON_INDEX]);
 
 		const currentEl = screen.getByText('Selected').closest('p');
-		expect(within(currentEl!).getByText(PRESETS[9].name)).toBeTruthy();
+		expect(within(currentEl!).getByText(PRESETS[LONDON_INDEX].name)).toBeTruthy();
 	});
 
 	it('mocked geocode drives the suggestion dropdown', async () => {
