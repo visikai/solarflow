@@ -2,7 +2,7 @@
 
 > A non-linear, adaptive clock based around sunrise and sunset — for any location, any day of the year.
 
-**Live site**: _coming soon (Task 012 — GitHub Pages deployment)_
+**Live site**: [https://visikai.github.io/solarflow/](https://visikai.github.io/solarflow/)
 
 ## Motivation
 
@@ -123,6 +123,18 @@ Phases:
 4. **Visualizations** — 24h timeline, dual clocks, sun-arc, mapping curve, yearly drift
 5. **Polish** — theming, responsive, accessibility
 6. **Deploy** — GitHub Actions → GitHub Pages
+
+## Deployment
+
+The site is a static SvelteKit build deployed to GitHub Pages at `/solarflow` on push to `main`. CI installs dependencies with pnpm, runs `BASE_PATH=/solarflow pnpm build`, and publishes the `build/` artifact via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Enable **Settings → Pages → Build and deployment → GitHub Actions** on the repo before the first deploy.
+
+To preview the production base path locally:
+
+```bash
+BASE_PATH=/solarflow pnpm build && BASE_PATH=/solarflow pnpm preview
+```
+
+Then open `http://localhost:4173/solarflow/`.
 
 ## Reference implementation
 
