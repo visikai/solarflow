@@ -382,6 +382,11 @@
 		padding: 0.375rem 0.5rem;
 	}
 
+	.dropdown li button:focus-visible {
+		outline: 2px solid var(--color-accent-linear);
+		outline-offset: -2px;
+	}
+
 	.dropdown li.highlighted button,
 	.dropdown li button:hover {
 		background: var(--color-grid);

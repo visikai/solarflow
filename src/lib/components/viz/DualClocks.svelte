@@ -76,6 +76,7 @@
 <div class="dual-clocks">
 	<div class="clock-panel">
 		<p class="clock-title">Linear</p>
+		<p class="sr-only" aria-live="polite">Linear clock showing {linearDigital}.</p>
 		<svg
 			class="clock-svg"
 			viewBox="0 0 {SIZE} {SIZE}"
@@ -113,6 +114,17 @@
 
 	<div class="clock-panel">
 		<p class="clock-title">Solar</p>
+		<p class="sr-only" aria-live="polite">
+			{#if polar !== null || $solarNow === null}
+				Solar clock unavailable: {polar === 'day'
+					? 'polar day'
+					: polar === 'night'
+						? 'polar night'
+						: 'solar time undefined'}.
+			{:else}
+				Solar clock showing {solarDigital}.
+			{/if}
+		</p>
 		<svg
 			class="clock-svg"
 			viewBox="0 0 {SIZE} {SIZE}"
@@ -262,6 +274,7 @@
 
 	.clock-panel:last-child .hand {
 		stroke: var(--color-accent-solar);
+		stroke-dasharray: 5 3;
 	}
 
 	.solar-label {

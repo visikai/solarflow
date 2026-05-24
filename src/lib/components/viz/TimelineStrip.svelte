@@ -96,9 +96,26 @@
 			? ''
 			: `Solar ${formatSolarTime($solarNow)} (${formatLocalTime(scaleToLinear($solarNow, events), $location.timezone)} local)`
 	);
+
+	let timelineSummary = $derived.by(() => {
+		const tz = $location.timezone;
+		const linear = formatLocalTime($linearNow, tz);
+		if (polar !== null) {
+			const mode = polar === 'day' ? 'polar day' : 'polar night';
+			return `${mode}. Linear time ${linear}. Solar time is not shown on the timeline.`;
+		}
+		const sunrise = formatLocalTime(events.sunrise, tz);
+		const sunset = formatLocalTime(events.sunset, tz);
+		const solarPart =
+			$solarNow === null
+				? 'Solar time unavailable.'
+				: `Solar time ${formatSolarTime($solarNow)}, local equivalent ${formatLocalTime(scaleToLinear($solarNow, events), tz)}.`;
+		return `Linear time ${linear}. ${solarPart} Sunrise ${sunrise}, sunset ${sunset}.`;
+	});
 </script>
 
 <div class="timeline-strip">
+	<p class="sr-only" aria-live="polite">{timelineSummary}</p>
 	<svg
 		class="timeline-svg"
 		viewBox="0 0 {WIDTH} {HEIGHT}"
@@ -235,5 +252,6 @@
 
 	.marker.solar .marker-line {
 		stroke: var(--color-accent-solar);
+		stroke-dasharray: 5 3;
 	}
 </style>

@@ -64,8 +64,8 @@
 			fg: '#1a1a1a',
 			grid: '#d4d0c8',
 			bg: '#f8f6f1',
-			linear: '#3b82f6',
-			solar: '#f97316'
+			linear: '#2563eb',
+			solar: '#c2410c'
 		},
 		year: new Date().getFullYear()
 	};
@@ -76,8 +76,8 @@
 			fg: style.getPropertyValue('--color-fg').trim() || '#1a1a1a',
 			grid: style.getPropertyValue('--color-grid').trim() || '#d4d0c8',
 			bg: style.getPropertyValue('--color-bg').trim() || '#f8f6f1',
-			linear: style.getPropertyValue('--color-accent-linear').trim() || '#3b82f6',
-			solar: style.getPropertyValue('--color-accent-solar').trim() || '#f97316'
+			linear: style.getPropertyValue('--color-accent-linear').trim() || '#2563eb',
+			solar: style.getPropertyValue('--color-accent-solar').trim() || '#c2410c'
 		};
 	}
 
@@ -191,16 +191,14 @@
 				{
 					label: 'Solar morning',
 					stroke: colors.solar,
-					width: 1,
-					dash: [6, 4],
-					alpha: 0.45,
+					width: 1.5,
 					points: { show: false }
 				},
 				{
 					label: 'Solar evening',
 					stroke: colors.solar,
 					width: 1,
-					dash: [6, 4],
+					dash: [3, 3],
 					alpha: 0.45,
 					points: { show: false }
 				}
@@ -310,11 +308,25 @@
 	</div>
 
 	<div class="yearly-drift-chart-wrap">
+		<p id="yearly-drift-summary" class="sr-only" aria-live="polite">
+			Yearly chart mapping workday start {formatTimeInput(workdayStart)} and end {formatTimeInput(
+				workdayEnd
+			)} to solar time through {chartState.year}.
+			{#if tooltipVisible}
+				At {tooltipDate}, start maps to solar {tooltipStartSolar}, end to solar {tooltipEndSolar}.
+				{#if tooltipDaytime}
+					{tooltipDaytime}.
+				{/if}
+				{#if tooltipNighttime}
+					{tooltipNighttime}.
+				{/if}
+			{/if}
+		</p>
 		<div
 			class="yearly-drift-chart"
 			bind:this={chartEl}
 			role="img"
-			aria-label="Yearly solar drift for workday start and end"
+			aria-labelledby="yearly-drift-summary"
 		></div>
 		{#if tooltipVisible}
 			<div class="yearly-drift-tooltip" style:left="{tooltipLeft}px" style:top="{tooltipTop}px">

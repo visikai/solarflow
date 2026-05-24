@@ -1,9 +1,7 @@
+import { prefersReducedMotion } from '../motionPreference.js';
 import { readable, type Readable } from 'svelte/store';
 
-function prefersReducedMotion(): boolean {
-	if (typeof window === 'undefined' || !window.matchMedia) return false;
-	return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
+export { prefersReducedMotion } from '../motionPreference.js';
 
 function createLinearNowStore(): Readable<Date> {
 	let subscriberCount = 0;

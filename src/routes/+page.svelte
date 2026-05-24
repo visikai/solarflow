@@ -97,11 +97,6 @@
 		background: color-mix(in srgb, var(--color-bg) 88%, var(--color-fg));
 	}
 
-	.theme-toggle:focus-visible {
-		outline: 2px solid var(--color-accent-linear);
-		outline-offset: 2px;
-	}
-
 	.theme-toggle__icon {
 		font-size: 1rem;
 		line-height: 1;
