@@ -12,9 +12,23 @@ export interface LocalTimeParts {
 	ms: number;
 }
 
-/** Degrees clockwise from 12 o'clock; suitable for SVG `rotate()` (0° = pointing up). */
-export function svgRotationFrom12oclock(degreesFrom12: number): number {
-	return degreesFrom12 - 90;
+/** Radians for polar coords: 0° = 12 o'clock, clockwise positive (matches tick marks). */
+export function radiansFrom12oclock(degreesFrom12: number): number {
+	return (degreesFrom12 / 360) * Math.PI * 2 - Math.PI / 2;
+}
+
+/** Tip of a clock hand in SVG user space (y grows downward). */
+export function handTip(
+	cx: number,
+	cy: number,
+	length: number,
+	degreesFrom12: number
+): { x: number; y: number } {
+	const angle = radiansFrom12oclock(degreesFrom12);
+	return {
+		x: cx + length * Math.cos(angle),
+		y: cy + length * Math.sin(angle)
+	};
 }
 
 export function decomposeDecimalHours(decimalHours: number): LocalTimeParts {
@@ -52,9 +66,9 @@ function handAnglesFromParts(parts: LocalTimeParts): ClockHandAngles {
 	const secondFrac = parts.seconds + parts.ms / 1000;
 	const hourFrac = (parts.hours12 + minuteFrac / 60) / 12;
 	return {
-		hour: svgRotationFrom12oclock(hourFrac * 360),
-		minute: svgRotationFrom12oclock((minuteFrac / 60) * 360),
-		second: svgRotationFrom12oclock((secondFrac / 60) * 360)
+		hour: hourFrac * 360,
+		minute: (minuteFrac / 60) * 360,
+		second: (secondFrac / 60) * 360
 	};
 }
 

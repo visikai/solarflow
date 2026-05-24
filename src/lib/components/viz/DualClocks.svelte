@@ -2,11 +2,12 @@
 	import {
 		formatLinearDigital,
 		formatSolarDigital,
+		handTip,
 		linearHandAngles,
 		solarHandAngles
 	} from '$lib/clockHands.js';
-	import { computeSunEvents } from '$lib/sun.js';
 	import { location } from '$lib/stores/location.js';
+	import { sunEvents } from '$lib/stores/sunEvents.js';
 	import { linearNow, solarNow } from '$lib/stores/time.js';
 
 	const SIZE = 200;
@@ -16,7 +17,7 @@
 	const TICK_INNER = R - 8;
 	const TICK_OUTER = R;
 
-	let events = $derived(computeSunEvents($location, $linearNow));
+	let events = $derived($sunEvents);
 	let polar = $derived(events.polar);
 
 	let linearAngles = $derived(linearHandAngles($linearNow, $location.timezone));
@@ -36,6 +37,22 @@
 			y2: CY + TICK_OUTER * Math.sin(angle)
 		};
 	}
+
+	function handLine(degreesFrom12: number, length: number): { x2: number; y2: number } {
+		const tip = handTip(CX, CY, length, degreesFrom12);
+		return { x2: tip.x, y2: tip.y };
+	}
+
+	function handLines(angles: { hour: number; minute: number; second: number }) {
+		return {
+			hour: handLine(angles.hour, R * 0.48),
+			minute: handLine(angles.minute, R * 0.68),
+			second: handLine(angles.second, R * 0.82)
+		};
+	}
+
+	let linearHands = $derived(handLines(linearAngles));
+	let solarHands = $derived(solarAngles ? handLines(solarAngles) : null);
 
 	function labelPos(solarHour: number): { x: number; y: number; anchor: string } {
 		const hourOnDial = solarHour % 12;
@@ -73,29 +90,20 @@
 				<line class="tick" x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
 			{/each}
 			<g class="hands">
-				<line
-					class="hand hour"
-					x1={CX}
-					y1={CY}
-					x2={CX}
-					y2={CY - R * 0.48}
-					transform="rotate({linearAngles.hour} {CX} {CY})"
-				/>
+				<line class="hand hour" x1={CX} y1={CY} x2={linearHands.hour.x2} y2={linearHands.hour.y2} />
 				<line
 					class="hand minute"
 					x1={CX}
 					y1={CY}
-					x2={CX}
-					y2={CY - R * 0.68}
-					transform="rotate({linearAngles.minute} {CX} {CY})"
+					x2={linearHands.minute.x2}
+					y2={linearHands.minute.y2}
 				/>
 				<line
 					class="hand second"
 					x1={CX}
 					y1={CY}
-					x2={CX}
-					y2={CY - R * 0.82}
-					transform="rotate({linearAngles.second} {CX} {CY})"
+					x2={linearHands.second.x2}
+					y2={linearHands.second.y2}
 				/>
 			</g>
 			<circle class="hub" cx={CX} cy={CY} r="4" />
@@ -139,31 +147,28 @@
 						{label.text}
 					</text>
 				{/each}
-				{#if solarAngles}
+				{#if solarHands}
 					<g class="hands">
 						<line
 							class="hand hour"
 							x1={CX}
 							y1={CY}
-							x2={CX}
-							y2={CY - R * 0.48}
-							transform="rotate({solarAngles.hour} {CX} {CY})"
+							x2={solarHands.hour.x2}
+							y2={solarHands.hour.y2}
 						/>
 						<line
 							class="hand minute"
 							x1={CX}
 							y1={CY}
-							x2={CX}
-							y2={CY - R * 0.68}
-							transform="rotate({solarAngles.minute} {CX} {CY})"
+							x2={solarHands.minute.x2}
+							y2={solarHands.minute.y2}
 						/>
 						<line
 							class="hand second"
 							x1={CX}
 							y1={CY}
-							x2={CX}
-							y2={CY - R * 0.82}
-							transform="rotate({solarAngles.second} {CX} {CY})"
+							x2={solarHands.second.x2}
+							y2={solarHands.second.y2}
 						/>
 					</g>
 				{/if}
@@ -217,7 +222,6 @@
 
 	.hand {
 		stroke-linecap: round;
-		transform-origin: center;
 	}
 
 	.hand.hour {
