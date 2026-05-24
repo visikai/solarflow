@@ -20,8 +20,8 @@ That's solarflow.
 
 Solarflow defines two parallel time systems:
 
-- **Linear time** — the familiar 24-hour clock. Identical regardless of season or latitude.
-- **Solar time** _(working name)_ — a non-linear clock anchored to the sun:
+- **Clock time** — the familiar 24-hour clock. Identical regardless of season or latitude.
+- **Solar time** — a non-linear clock anchored to the sun:
   - actual sunrise maps to **06:00**
   - actual sunset maps to **18:00**
   - daytime and nighttime are each independently stretched (or compressed) so that the mapping is continuous.
@@ -32,21 +32,19 @@ The same scaled hour always represents the same fraction of available daylight.
 
 In Reykjavík on the winter solstice, the sun rises around 11:20 and sets around 15:30 — only about four hours of daylight. In solar time:
 
-| Linear time | Solar time | Notes                              |
-| ----------- | ---------- | ---------------------------------- |
-| 11:20       | 06:00      | Sunrise                            |
-| 13:25       | 12:00      | Solar noon                         |
-| 15:30       | 18:00      | Sunset                             |
-| 09:00       | ~03:25     | "Workday start" — still deep night |
-| 17:00       | ~20:25     | "Workday end" — well after sunset  |
+| Clock time | Solar time | Notes                              |
+| ---------- | ---------- | ---------------------------------- |
+| 11:20      | 06:00      | Sunrise                            |
+| 13:25      | 12:00      | Solar noon                         |
+| 15:30      | 18:00      | Sunset                             |
+| 09:00      | ~03:25     | "Workday start" — still deep night |
+| 17:00      | ~20:25     | "Workday end" — well after sunset  |
 
 On the same day, the entire conventional workday (09:00–17:00) sits almost entirely _outside_ the daylight window. Solar time makes that visible at a glance.
 
 ## Status
 
-Early, exploratory development. The name "solar time" is provisional — suggestions welcome.
-
-The project recently pivoted from a planned Python/FastAPI server to a **pure static SPA** deployable to GitHub Pages. All sun math runs in the browser. See [`.mdboard/tasks/`](.mdboard/tasks/) for the active roadmap.
+Pure static SPA: all sun math runs in the browser. See the [live site](https://visikai.github.io/solarflow/) or run locally with the quickstart below.
 
 ## Tech stack
 
@@ -82,7 +80,7 @@ Common tasks (see [`.mise.toml`](.mise.toml)):
 | `mise run tests`     | Run Vitest                               |
 | `mise run all`       | fmt:check + lint + tests + build         |
 
-## Project structure (target)
+## Project structure
 
 ```
 solarflow/
@@ -91,7 +89,7 @@ solarflow/
 │   ├── routes/                 # File-based routing
 │   │   └── +page.svelte        # Main page
 │   ├── lib/
-│   │   ├── scaling.ts          # linear↔solar mapping (pure functions)
+│   │   ├── scaling.ts          # clock↔solar mapping (pure functions)
 │   │   ├── sun.ts              # suncalc wrapper, sun events
 │   │   ├── presets.ts          # Curated city list
 │   │   ├── geocode.ts          # Nominatim adapter + localStorage cache
@@ -107,22 +105,8 @@ solarflow/
 ├── tsconfig.json
 ├── package.json
 ├── .mise.toml
-├── .mdboard/                   # Project task board
 └── AGENTS.md
 ```
-
-## Roadmap
-
-Phased work is tracked as tasks in [`.mdboard/tasks/`](.mdboard/tasks/). Run `uvx mdboard` from the repo root to browse interactively.
-
-Phases:
-
-1. **Bootstrap** — SvelteKit + adapter-static skeleton
-2. **Core math** — `suncalc` + scaling functions, fully tested
-3. **Location** — presets, geolocation, geocoding, timezone lookup
-4. **Visualizations** — 24h timeline, dual clocks, sun-arc, mapping curve, yearly drift
-5. **Polish** — theming, responsive, accessibility
-6. **Deploy** — GitHub Actions → GitHub Pages
 
 ## Deployment
 
@@ -136,16 +120,12 @@ BASE_PATH=/solarflow pnpm build && BASE_PATH=/solarflow pnpm preview
 
 Then open `http://localhost:4173/solarflow/`.
 
-## Reference implementation
-
-The original Python prototype using [`astral`](https://astral.readthedocs.io/) lives at [`../solarflow-py`](../solarflow-py). It is preserved as a tested reference for the scaling math; the JS port in this repo is validated against it.
-
 ## Glossary
 
-- **Linear time** — the standard 24-hour clock; identical regardless of season or latitude.
-- **Solar time** — _(working name)_ a non-linear clock for a given location and date, where actual sunrise maps to `06:00` and actual sunset to `18:00`; daytime hours and nighttime hours are independently stretched or compressed so that the same scaled hour always represents the same fraction of available daylight.
+- **Clock time** — the standard 24-hour clock; identical regardless of season or latitude.
+- **Solar time** — a non-linear clock for a given location and date, where actual sunrise maps to `06:00` and actual sunset to `18:00`; daytime hours and nighttime hours are independently stretched or compressed so that the same scaled hour always represents the same fraction of available daylight.
 - **Solar noon** — the moment the sun is highest in the sky; always maps to solar `12:00`.
-- **Linear→solar / solar→linear** — the two directions of the mapping. The forward direction answers "what is the solar time right now?"; the inverse answers questions like "what linear time is solar 09:00?"
+- **Clock→solar / solar→clock** — the two directions of the mapping. The forward direction answers "what is the solar time right now?"; the inverse answers questions like "what clock time is solar 09:00?"
 
 ## License
 
