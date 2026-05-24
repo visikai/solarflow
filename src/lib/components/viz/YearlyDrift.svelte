@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { formatYearlyTooltipDaySection } from '$lib/dayLength.js';
 	import { formatTimeInput, parseTimeInput } from '$lib/timeInput.js';
+	import { loadShowSeasonMarkers, persistShowSeasonMarkers } from '$lib/yearlyDriftPrefs.js';
+	import { seasonMarkersForChart, type SeasonChartMarker } from '$lib/seasons.js';
 	import {
 		computeYearlyDrift,
 		currentDayOfYear,
@@ -27,6 +29,12 @@
 	import 'uplot/dist/uPlot.min.css';
 
 	const CHART_HEIGHT = 300;
+	const TOOLTIP_GAP = 12;
+	/** Base tooltip width at scale 1 (desktop-sized chart). */
+	const TOOLTIP_BASE_WIDTH = 200;
+	/** Chart wrap width where the tooltip uses full size. */
+	const TOOLTIP_REF_WRAP_WIDTH = 720;
+	const TOOLTIP_MIN_SCALE = 0.72;
 	const MONTH_NAMES = [
 		'Jan',
 		'Feb',
@@ -67,17 +75,34 @@
 	let tooltipOverlap = $state('');
 	let tooltipLeft = $state(0);
 	let tooltipTop = $state(0);
+	let tooltipScale = $state(1);
+	let tooltipWidth = $state(TOOLTIP_BASE_WIDTH);
+	let tooltipFontPx = $state(12);
+
+	function tooltipScaleForWrapWidth(wrapWidth: number): number {
+		if (wrapWidth >= TOOLTIP_REF_WRAP_WIDTH) return 1;
+		return Math.max(TOOLTIP_MIN_SCALE, wrapWidth / TOOLTIP_REF_WRAP_WIDTH);
+	}
 
 	let workdayStart = $state(DEFAULT_WORKDAY_START);
 	let workdayEnd = $state(DEFAULT_WORKDAY_END);
+	let showSeasonMarkers = $state(loadShowSeasonMarkers());
 
 	let observesDst = $state(false);
+	let seasonSummaryLine = $state('');
+
+	function onShowSeasonMarkersChange(checked: boolean): void {
+		showSeasonMarkers = checked;
+		persistShowSeasonMarkers(checked);
+	}
 
 	/** Non-reactive: read by uPlot hooks only; must not retrigger $effect when updated. */
 	const chartState: {
 		colors: ChartColors;
 		year: number;
 		currentDoy: number | null;
+		seasonMarkers: SeasonChartMarker[];
+		showSeasonMarkers: boolean;
 	} = {
 		colors: {
 			fg: '#1a1a1a',
@@ -89,7 +114,9 @@
 			fillWorkhours: 'rgba(37, 99, 235, 0.12)'
 		},
 		year: new Date().getFullYear(),
-		currentDoy: null
+		currentDoy: null,
+		seasonMarkers: [],
+		showSeasonMarkers: true
 	};
 
 	function colorSource(): HTMLElement {
@@ -135,6 +162,24 @@
 		});
 	}
 
+	/** Scale overlay label size with plot width so zoom / wide layouts stay readable. */
+	function overlayFontPx(u: uPlot): number {
+		return Math.max(11, Math.min(14, Math.round(u.bbox.width / 52)));
+	}
+
+	/** Center on `anchorX`, shifting only as much as needed to keep the pill inside the plot. */
+	function clampedLabelCenterX(
+		anchorX: number,
+		labelWidth: number,
+		bbox: { left: number; width: number },
+		pad = 8
+	): number {
+		const minCx = bbox.left + pad + labelWidth / 2;
+		const maxCx = bbox.left + bbox.width - pad - labelWidth / 2;
+		if (minCx > maxCx) return (minCx + maxCx) / 2;
+		return Math.max(minCx, Math.min(anchorX, maxCx));
+	}
+
 	function drawLineLabel(
 		ctx: CanvasRenderingContext2D,
 		text: string,
@@ -142,14 +187,15 @@
 		y: number,
 		align: CanvasTextAlign,
 		colors: ChartColors,
-		ink: string = colors.solar
+		ink: string = colors.solar,
+		fontPx = 11
 	): void {
 		const padX = 5;
 		const padY = 3;
-		const font = '600 11px system-ui, sans-serif';
+		const font = `600 ${fontPx}px system-ui, sans-serif`;
 		ctx.font = font;
 		const w = ctx.measureText(text).width + padX * 2;
-		const h = 14 + padY;
+		const h = fontPx + 3 + padY;
 		const bx = align === 'center' ? x - w / 2 : align === 'left' ? x : x - w;
 		const by = y - h / 2;
 
@@ -165,6 +211,23 @@
 		ctx.textBaseline = 'middle';
 		const tx = align === 'center' ? x : align === 'left' ? x + padX : x - padX;
 		ctx.fillText(text, tx, y);
+	}
+
+	function drawLineLabelAuto(
+		u: uPlot,
+		ctx: CanvasRenderingContext2D,
+		text: string,
+		anchorX: number,
+		y: number,
+		colors: ChartColors,
+		ink: string
+	): void {
+		const fontPx = overlayFontPx(u);
+		const padX = 5;
+		ctx.font = `600 ${fontPx}px system-ui, sans-serif`;
+		const w = ctx.measureText(text).width + padX * 2;
+		const cx = clampedLabelCenterX(anchorX, w, u.bbox);
+		drawLineLabel(ctx, text, cx, y, 'center', colors, ink, fontPx);
 	}
 
 	function drawBackgroundBands(u: uPlot): void {
@@ -230,10 +293,44 @@
 		const xStart = u.bbox.left + 6;
 		const ctx = u.ctx;
 		const colors = chartState.colors;
+		const fontPx = overlayFontPx(u);
 
 		ctx.save();
-		drawLineLabel(ctx, 'sunrise', xStart, ySunrise, 'left', colors);
-		drawLineLabel(ctx, 'sunset', xStart, ySunset, 'left', colors);
+		drawLineLabel(ctx, 'sunrise', xStart, ySunrise, 'left', colors, colors.solar, fontPx);
+		drawLineLabel(ctx, 'sunset', xStart, ySunset, 'left', colors, colors.solar, fontPx);
+		ctx.restore();
+	}
+
+	/** Season lines on top of bands/series so they stay visible in all themes. */
+	function drawSeasonMarkersOnTop(u: uPlot): void {
+		if (!chartState.showSeasonMarkers) return;
+		const markers = chartState.seasonMarkers;
+		if (markers.length === 0) return;
+
+		const { top, height } = u.bbox;
+		const ctx = u.ctx;
+		const { fg } = chartState.colors;
+		const fontPx = overlayFontPx(u);
+		const labelY = top + height - 8 - fontPx / 2;
+
+		ctx.save();
+		ctx.strokeStyle = fg;
+		ctx.globalAlpha = 0.92;
+		ctx.lineWidth = 2;
+		ctx.setLineDash([4, 4]);
+
+		for (const { doy, label } of markers) {
+			const x = u.valToPos(doy, 'x', true);
+			if (x == null || !Number.isFinite(x)) continue;
+
+			ctx.beginPath();
+			ctx.moveTo(x, top);
+			ctx.lineTo(x, top + height);
+			ctx.stroke();
+
+			drawLineLabelAuto(u, ctx, label, x, labelY, chartState.colors, fg);
+		}
+
 		ctx.restore();
 	}
 
@@ -245,6 +342,7 @@
 		const { top, height } = u.bbox;
 		const ctx = u.ctx;
 		const { clock } = chartState.colors;
+		const fontPx = overlayFontPx(u);
 		ctx.save();
 		ctx.strokeStyle = clock;
 		ctx.globalAlpha = 0.75;
@@ -255,7 +353,7 @@
 		ctx.lineTo(x, top + height);
 		ctx.stroke();
 		ctx.setLineDash([]);
-		drawLineLabel(ctx, 'today', x, top + 10, 'center', chartState.colors, clock);
+		drawLineLabelAuto(u, ctx, 'today', x, top + 8 + fontPx / 2, chartState.colors, clock);
 		ctx.restore();
 	}
 
@@ -301,10 +399,22 @@
 		const { left, top } = u.cursor;
 		if (left == null || top == null) return;
 		const root = u.root.getBoundingClientRect();
-		const host = chartEl?.getBoundingClientRect();
-		if (!host) return;
-		tooltipLeft = left + root.left - host.left + 12;
-		tooltipTop = top + root.top - host.top - 8;
+		const wrap = chartEl?.parentElement?.getBoundingClientRect();
+		if (!wrap) return;
+
+		const cursorX = left + root.left - wrap.left;
+		const cursorY = top + root.top - wrap.top;
+
+		const scale = tooltipScaleForWrapWidth(wrap.width);
+		tooltipScale = scale;
+		tooltipWidth = TOOLTIP_BASE_WIDTH * scale;
+		tooltipFontPx = 12 * scale;
+
+		// Prefer sitting just right of the crosshair; clamp so the box stays in bounds (no flip jump).
+		const maxLeft = wrap.width - tooltipWidth - TOOLTIP_GAP;
+		const desiredLeft = cursorX + TOOLTIP_GAP;
+		tooltipLeft = Math.max(TOOLTIP_GAP, Math.min(desiredLeft, maxLeft));
+		tooltipTop = cursorY - 8;
 	}
 
 	function buildOptions(width: number, yRange: { min: number; max: number }): uPlot.Options {
@@ -324,7 +434,7 @@
 			hooks: {
 				setCursor: [updateTooltip],
 				drawAxes: [drawUnderSeries],
-				draw: [drawChartOverlays]
+				draw: [drawChartOverlays, drawSeasonMarkersOnTop]
 			},
 			scales: {
 				x: { min: 1, max: series?.dayOfYear.length ?? 365 },
@@ -396,6 +506,16 @@
 		const loc = $location;
 		chartState.year = new Date().getFullYear();
 		chartState.currentDoy = currentDayOfYear(loc.timezone, chartState.year);
+		chartState.showSeasonMarkers = showSeasonMarkers;
+		if (showSeasonMarkers) {
+			chartState.seasonMarkers = seasonMarkersForChart(chartState.year, loc.timezone, loc.latitude);
+			seasonSummaryLine = chartState.seasonMarkers
+				.map((m) => `${m.label} ${formatDoyLabel(chartState.year, m.doy)}`)
+				.join('; ');
+		} else {
+			chartState.seasonMarkers = [];
+			seasonSummaryLine = '';
+		}
 		observesDst = locationObservesDst(loc.timezone, chartState.year);
 		series = computeYearlyDrift(loc, {
 			year: chartState.year,
@@ -411,6 +531,7 @@
 			plot.setData(data, false);
 			plot.setScale('x', { min: 1, max: series.dayOfYear.length });
 			plot.setScale('y', yRange);
+			plot.redraw();
 		} else {
 			chartState.colors = readColors(chartEl);
 			plot = new uPlot(buildOptions(width, yRange), data, chartEl);
@@ -421,6 +542,7 @@
 		void $location;
 		void workdayStart;
 		void workdayEnd;
+		void showSeasonMarkers;
 		void chartEl;
 		untrack(() => refreshChart());
 	});
@@ -461,21 +583,31 @@
 	<h3 class="yearly-drift-title">Solarflow year graph</h3>
 
 	<div class="yearly-drift-controls">
-		<label class="control">
-			<span class="control-label">Workday start</span>
+		<div class="workday-controls">
+			<label class="control">
+				<span class="control-label">Workday start</span>
+				<input
+					type="time"
+					value={formatTimeInput(workdayStart)}
+					onchange={(e) => (workdayStart = parseTimeInput(e.currentTarget.value))}
+				/>
+			</label>
+			<label class="control">
+				<span class="control-label">Workday end</span>
+				<input
+					type="time"
+					value={formatTimeInput(workdayEnd)}
+					onchange={(e) => (workdayEnd = parseTimeInput(e.currentTarget.value))}
+				/>
+			</label>
+		</div>
+		<label class="season-markers-toggle">
 			<input
-				type="time"
-				value={formatTimeInput(workdayStart)}
-				onchange={(e) => (workdayStart = parseTimeInput(e.currentTarget.value))}
+				type="checkbox"
+				checked={showSeasonMarkers}
+				onchange={(e) => onShowSeasonMarkersChange(e.currentTarget.checked)}
 			/>
-		</label>
-		<label class="control">
-			<span class="control-label">Workday end</span>
-			<input
-				type="time"
-				value={formatTimeInput(workdayEnd)}
-				onchange={(e) => (workdayEnd = parseTimeInput(e.currentTarget.value))}
-			/>
+			Show equinox/solstices
 		</label>
 	</div>
 
@@ -484,6 +616,9 @@
 			Yearly chart mapping workday start {formatTimeInput(workdayStart)} and end {formatTimeInput(
 				workdayEnd
 			)} to solar time through {chartState.year}.
+			{#if showSeasonMarkers && seasonSummaryLine}
+				Season markers: {seasonSummaryLine}.
+			{/if}
 			{#if tooltipVisible}
 				At {tooltipDate},
 				{#if tooltipPolarNote}
@@ -505,7 +640,15 @@
 			aria-labelledby="yearly-drift-summary"
 		></div>
 		{#if tooltipVisible}
-			<div class="yearly-drift-tooltip" style:left="{tooltipLeft}px" style:top="{tooltipTop}px">
+			<div
+				class="yearly-drift-tooltip"
+				style:left="{tooltipLeft}px"
+				style:top="{tooltipTop}px"
+				style:width="{tooltipWidth}px"
+				style:font-size="{tooltipFontPx}px"
+				style:padding="{4 * tooltipScale}px {6 * tooltipScale}px"
+				style:gap="{3.5 * tooltipScale}px"
+			>
 				<p class="tooltip-date"><strong>{tooltipDate}</strong></p>
 				<div class="tooltip-day">
 					{#if tooltipPolarNote}
@@ -549,8 +692,16 @@
 	.yearly-drift-controls {
 		display: flex;
 		flex-wrap: wrap;
+		align-items: flex-end;
+		justify-content: space-between;
 		gap: 1rem 1.5rem;
 		margin-bottom: 0.75rem;
+	}
+
+	.workday-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem 1.5rem;
 	}
 
 	.control {
@@ -573,9 +724,28 @@
 		color: var(--color-fg);
 	}
 
+	.season-markers-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0 0 0 auto;
+		padding: 0.25rem 0;
+		font-size: 0.8rem;
+		color: var(--color-muted);
+		cursor: pointer;
+		user-select: none;
+		white-space: nowrap;
+	}
+
+	.season-markers-toggle input {
+		margin: 0;
+		accent-color: var(--color-accent-solar);
+	}
+
 	.yearly-drift-chart-wrap {
 		position: relative;
 		width: 100%;
+		overflow: visible;
 	}
 
 	.yearly-drift-chart {
@@ -593,10 +763,7 @@
 		z-index: 2;
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
-		max-width: min(20rem, calc(100vw - 2rem));
-		padding: 0.4rem 0.55rem;
-		font-size: 0.75rem;
+		box-sizing: border-box;
 		line-height: 1.4;
 		font-variant-numeric: tabular-nums;
 		border-radius: 0.25rem;
@@ -604,6 +771,9 @@
 		border: 1px solid var(--color-grid);
 		box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
 		transform: translateY(-100%);
+		transition:
+			left 60ms linear,
+			top 60ms linear;
 	}
 
 	.yearly-drift-tooltip p {

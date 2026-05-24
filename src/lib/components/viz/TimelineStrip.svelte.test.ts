@@ -75,10 +75,11 @@ describe('TimelineStrip', () => {
 		);
 	});
 
-	it('shows clock daylight and night hours between timeline rows', () => {
+	it('shows daylight, night, and season countdown on one line between timeline rows', () => {
 		const { container } = render(TimelineStrip);
-		const summary = container.querySelector('.day-night-summary');
-		expect(summary?.textContent).toMatch(/^\d+h.*daylight · \d+h.*night$/);
+		const summary = container.querySelector('.timeline-middle-summary');
+		expect(summary?.textContent).toMatch(/^\d+h.*daylight · \d+h.*night · .*solstice/);
 		expect(summary?.textContent).not.toMatch(/NaN/);
+		expect(container.querySelectorAll('.timeline-sep').length).toBe(0);
 	});
 });

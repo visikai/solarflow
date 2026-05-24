@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { clockDayNightHours, formatDayNightSummary } from '$lib/dayLength.js';
+	import { seasonTimelineCopy } from '$lib/seasons.js';
 	import { DEFAULT_SCALING } from '$lib/types.js';
 	import { location } from '$lib/stores/location.js';
 	import { sunEvents } from '$lib/stores/sunEvents.js';
@@ -146,18 +147,31 @@
 		return formatDayNightSummary(daylightHours, nightHours);
 	});
 
+	let seasonCopy = $derived(seasonTimelineCopy($clockNow, $location.timezone, $location.latitude));
+
+	function stripSeasonPeriod(line: string): string {
+		return line.replace(/\.$/, '');
+	}
+
+	let middleSummary = $derived.by(() => {
+		const parts = [dayNightSummary];
+		if (seasonCopy.todayLine) parts.push(stripSeasonPeriod(seasonCopy.todayLine));
+		parts.push(stripSeasonPeriod(seasonCopy.nextLine));
+		return parts.join(' · ');
+	});
+
 	let timelineSummary = $derived.by(() => {
 		const tz = $location.timezone;
 		const clockTime = formatLocalTime($clockNow, tz);
 		if (polar !== null) {
 			const mode = polar === 'day' ? 'polar day' : 'polar night';
-			return `${mode}. Clock time ${clockTime}. Solar time is not shown on the timeline.`;
+			return `${mode}. Clock time ${clockTime}. Solar time is not shown on the timeline. ${middleSummary}.`;
 		}
 		const sunrise = formatLocalTime(todaySun.sunrise, tz);
 		const sunset = formatLocalTime(todaySun.sunset, tz);
 		const solarPart =
 			$solarNow === null ? 'Solar time unavailable.' : `Solar time ${formatSolarTime($solarNow)}.`;
-		return `Clock time ${clockTime}. ${solarPart} ${dayNightSummary}. Sunrise ${sunrise}, sunset ${sunset}.`;
+		return `Clock time ${clockTime}. ${solarPart} ${middleSummary}. Sunrise ${sunrise}, sunset ${sunset}.`;
 	});
 </script>
 
@@ -223,7 +237,7 @@
 	</div>
 
 	<div class="timeline-summary">
-		<p class="day-night-summary">{dayNightSummary}</p>
+		<p class="timeline-middle-summary">{middleSummary}</p>
 	</div>
 
 	<div class="timeline-row">
@@ -307,7 +321,7 @@
 		margin-block: -0.25rem;
 	}
 
-	.day-night-summary {
+	.timeline-middle-summary {
 		grid-column: 2;
 		margin: 0;
 		font-size: 0.8125rem;
