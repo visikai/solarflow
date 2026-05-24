@@ -1,5 +1,6 @@
 import { localDecimalHours } from './mappingCurve.js';
-import { formatTimeInput } from './timeInput.js';
+import type { ClockFormat } from './stores/clockFormat.js';
+import { formatDecimalHours } from './timeDisplay.js';
 import type { SunEvents } from './types.js';
 
 const MS_PER_HOUR = 3_600_000;
@@ -45,7 +46,8 @@ export interface YearlyTooltipDaySection {
 /** Clock sunrise/sunset and day length lines for the yearly drift hover tooltip. */
 export function formatYearlyTooltipDaySection(
 	sun: SunEvents,
-	timeZone: string
+	timeZone: string,
+	clockFormatPref: ClockFormat = '24'
 ): YearlyTooltipDaySection {
 	const { daylightHours, nightHours } = clockDayNightHours(sun);
 	const dayNightLine = formatDayNightSummary(daylightHours, nightHours);
@@ -65,8 +67,12 @@ export function formatYearlyTooltipDaySection(
 		};
 	}
 
-	const sunrise = formatTimeInput(localDecimalHours(sun.sunrise, timeZone));
-	const sunset = formatTimeInput(localDecimalHours(sun.sunset, timeZone));
+	const sunrise = formatDecimalHours(localDecimalHours(sun.sunrise, timeZone), clockFormatPref, {
+		compact: true
+	});
+	const sunset = formatDecimalHours(localDecimalHours(sun.sunset, timeZone), clockFormatPref, {
+		compact: true
+	});
 	return {
 		polarNote: null,
 		sunTimesLine: `Sunrise ${sunrise} · Sunset ${sunset}`,

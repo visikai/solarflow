@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { formatYearlyTooltipDaySection } from '$lib/dayLength.js';
 	import { formatTimeInput, parseTimeInput } from '$lib/timeInput.js';
+	import { clockFormat } from '$lib/stores/clockFormat.js';
+	import { formatDecimalHours, formatDecimalHoursAxis } from '$lib/timeDisplay.js';
 	import { loadShowSeasonMarkers, persistShowSeasonMarkers } from '$lib/yearlyDriftPrefs.js';
 	import { seasonMarkersForChart, type SeasonChartMarker } from '$lib/seasons.js';
 	import {
@@ -10,7 +12,6 @@
 		DEFAULT_WORKDAY_START,
 		doyToMonthDay,
 		formatDoyLabel,
-		formatSolarHours,
 		formatWorkhoursOverlapLabel,
 		locationObservesDst,
 		monthStartDaysOfYear,
@@ -383,13 +384,19 @@
 		tooltipDate = formatDoyLabel(chartState.year, doy);
 		const daySection = formatYearlyTooltipDaySection(
 			sunEventsForDayOfYear(loc, chartState.year, doy),
-			loc.timezone
+			loc.timezone,
+			get(clockFormat)
 		);
 		tooltipPolarNote = daySection.polarNote;
 		tooltipSunTimesLine = daySection.sunTimesLine;
 		tooltipDayNightLine = daySection.dayNightLine;
-		tooltipStartSolar = start == null || !Number.isFinite(start) ? '—' : formatSolarHours(start);
-		tooltipEndSolar = end == null || !Number.isFinite(end) ? '—' : formatSolarHours(end);
+		const fmt = get(clockFormat);
+		tooltipStartSolar =
+			start == null || !Number.isFinite(start)
+				? '—'
+				: formatDecimalHours(start, fmt, { compact: true });
+		tooltipEndSolar =
+			end == null || !Number.isFinite(end) ? '—' : formatDecimalHours(end, fmt, { compact: true });
 		if (start != null && end != null && Number.isFinite(start) && Number.isFinite(end)) {
 			tooltipOverlap = formatWorkhoursOverlapLabel(workdaySolarOverlapFractions(start, end));
 		} else {
@@ -455,7 +462,7 @@
 					grid: { stroke: colors.grid },
 					ticks: { stroke: colors.grid },
 					splits: () => [0, 6, 12, 18, 24],
-					values: (_u, splits) => splits.map((v) => String(v))
+					values: (_u, splits) => splits.map((v) => formatDecimalHoursAxis(v, get(clockFormat)))
 				}
 			],
 			series: [
@@ -547,6 +554,11 @@
 		untrack(() => refreshChart());
 	});
 
+	$effect(() => {
+		void $clockFormat;
+		untrack(() => rebuildChartForTheme());
+	});
+
 	onMount(() => {
 		const themeObserver = new MutationObserver(() => {
 			rebuildChartForTheme();
@@ -613,9 +625,10 @@
 
 	<div class="yearly-drift-chart-wrap">
 		<p id="yearly-drift-summary" class="sr-only" aria-live="polite">
-			Yearly chart mapping workday start {formatTimeInput(workdayStart)} and end {formatTimeInput(
-				workdayEnd
-			)} to solar time through {chartState.year}.
+			Yearly chart mapping workday start {formatDecimalHours(workdayStart, $clockFormat, {
+				compact: true
+			})} and end {formatDecimalHours(workdayEnd, $clockFormat, { compact: true })} to solar time through
+			{chartState.year}.
 			{#if showSeasonMarkers && seasonSummaryLine}
 				Season markers: {seasonSummaryLine}.
 			{/if}
@@ -660,8 +673,12 @@
 					<p>{tooltipDayNightLine}</p>
 				</div>
 				<div class="tooltip-workday" aria-label="Workday mapping">
-					<p>Start {formatTimeInput(workdayStart)} → solar {tooltipStartSolar}</p>
-					<p>End {formatTimeInput(workdayEnd)} → solar {tooltipEndSolar}</p>
+					<p>
+						Start {formatDecimalHours(workdayStart, $clockFormat, { compact: true })} → solar {tooltipStartSolar}
+					</p>
+					<p>
+						End {formatDecimalHours(workdayEnd, $clockFormat, { compact: true })} → solar {tooltipEndSolar}
+					</p>
 					{#if tooltipOverlap}
 						<p class="tooltip-overlap">{tooltipOverlap}</p>
 					{/if}

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { clockDayNightHours, formatDayNightSummary } from '$lib/dayLength.js';
 	import { seasonTimelineCopy } from '$lib/seasons.js';
+	import { clockFormat } from '$lib/stores/clockFormat.js';
 	import { DEFAULT_SCALING } from '$lib/types.js';
+	import { formatDecimalHours, formatInstant } from '$lib/timeDisplay.js';
 	import { location } from '$lib/stores/location.js';
 	import { sunEvents } from '$lib/stores/sunEvents.js';
 	import { clockNow, solarNow } from '$lib/stores/time.js';
@@ -38,31 +40,19 @@
 	}
 
 	function formatLocalTime(instant: Date, timeZone: string): string {
-		return new Intl.DateTimeFormat(undefined, {
-			timeZone,
-			hour: 'numeric',
-			minute: '2-digit',
-			second: '2-digit'
-		}).format(instant);
+		return formatInstant(instant, timeZone, $clockFormat, { seconds: true });
 	}
 
 	function formatSolarTime(hours: number): string {
-		const h = Math.floor(hours) % 24;
-		const m = Math.floor((hours % 1) * 60);
-		const s = Math.floor(((hours % 1) * 60 - m) * 60);
-		return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+		return formatDecimalHours(hours, $clockFormat, { seconds: true });
 	}
 
 	function formatFixedSolarHour(hours: number): string {
-		return `${String(hours).padStart(2, '0')}:00`;
+		return formatDecimalHours(hours, $clockFormat, { compact: true });
 	}
 
 	function tickLabel(instant: Date, timeZone: string): string {
-		return new Intl.DateTimeFormat(undefined, {
-			timeZone,
-			hour: 'numeric',
-			minute: '2-digit'
-		}).format(instant);
+		return formatInstant(instant, timeZone, $clockFormat);
 	}
 
 	type Segment = { x: number; width: number; kind: 'night' | 'day' };

@@ -1,3 +1,6 @@
+import { formatDecimalHours, formatInstant } from './timeDisplay.js';
+import type { ClockFormat } from './stores/clockFormat.js';
+
 export interface ClockHandAngles {
 	hour: number;
 	minute: number;
@@ -82,17 +85,14 @@ export function solarHandAngles(decimalHours: number): ClockHandAngles {
 	return handAnglesFromParts(decomposeDecimalHours(decimalHours));
 }
 
-export function formatClockDigital(instant: Date, timeZone: string): string {
-	return new Intl.DateTimeFormat('en-GB', {
-		timeZone,
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		hour12: false
-	}).format(instant);
+export function formatClockDigital(
+	instant: Date,
+	timeZone: string,
+	format: ClockFormat = '24'
+): string {
+	return formatInstant(instant, timeZone, format, { seconds: true });
 }
 
-export function formatSolarDigital(decimalHours: number): string {
-	const { hours24, minutes, seconds } = decomposeDecimalHours(decimalHours);
-	return `${String(hours24).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+export function formatSolarDigital(decimalHours: number, format: ClockFormat = '24'): string {
+	return formatDecimalHours(decimalHours, format, { seconds: true });
 }

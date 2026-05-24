@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GeolocationDeniedError } from '../errors.js';
 import LocationPicker from './LocationPicker.svelte';
 import { PRESETS } from '../presets.js';
+import { clockFormat, CLOCK_FORMAT_STORAGE_KEY } from '../stores/clockFormat.js';
 import {
 	LOCATION_STORAGE_KEY,
 	PRESET_STORAGE_KEY,
@@ -56,6 +57,7 @@ describe('LocationPicker', () => {
 	beforeEach(() => {
 		vi.stubGlobal('localStorage', storage);
 		storage.clear();
+		clockFormat.set('24');
 		location.set(PRESETS[0]);
 		geocodeSuggest.mockReset();
 		getBrowserLocation.mockReset();
@@ -67,6 +69,23 @@ describe('LocationPicker', () => {
 		cleanup();
 		vi.unstubAllGlobals();
 		vi.useRealTimers();
+	});
+
+	it('switches clock format via header toggle', async () => {
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+		render(LocationPicker);
+
+		const group = screen.getByRole('group', { name: 'Clock format' });
+		const btn12 = within(group).getByRole('button', { name: '12-hour clock with am/pm' });
+		await user.click(btn12);
+
+		let format: string | undefined;
+		const unsub = clockFormat.subscribe((v) => {
+			format = v;
+		});
+		unsub();
+		expect(format).toBe('12');
+		expect(storage.getItem(CLOCK_FORMAT_STORAGE_KEY)).toBe('12');
 	});
 
 	it('renders with the default location', () => {

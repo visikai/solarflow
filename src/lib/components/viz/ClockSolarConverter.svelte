@@ -4,7 +4,8 @@
 	import { location } from '$lib/stores/location.js';
 	import { clockNow } from '$lib/stores/time.js';
 	import { get } from 'svelte/store';
-	import { formatTimeInput } from '$lib/timeInput.js';
+	import { clockFormat } from '$lib/stores/clockFormat.js';
+	import { formatDecimalHours } from '$lib/timeDisplay.js';
 	import {
 		convertClockRangeToSolar,
 		convertSolarRangeToClock,
@@ -54,10 +55,11 @@
 	});
 
 	function formatRangeMessage(label: string, range: ConvertedRange): string {
+		const fmt = $clockFormat;
 		if (range.to === null) {
-			return `${label}: ${formatTimeInput(range.from)}`;
+			return `${label}: ${formatDecimalHours(range.from, fmt, { compact: true })}`;
 		}
-		return `${label}: ${formatTimeInput(range.from)} – ${formatTimeInput(range.to)}`;
+		return `${label}: ${formatDecimalHours(range.from, fmt, { compact: true })} – ${formatDecimalHours(range.to, fmt, { compact: true })}`;
 	}
 
 	function convertToSolar() {

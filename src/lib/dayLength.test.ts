@@ -47,8 +47,15 @@ describe('formatYearlyTooltipDaySection', () => {
 		const events = computeSunEvents(NYC, new Date('2024-03-20T12:00:00-04:00'));
 		const section = formatYearlyTooltipDaySection(events, NYC.timezone);
 		expect(section.polarNote).toBeNull();
-		expect(section.sunTimesLine).toMatch(/^Sunrise \d{2}:\d{2} · Sunset \d{2}:\d{2}$/);
+		expect(section.sunTimesLine).toMatch(/^Sunrise \d{1,2}:\d{2} · Sunset \d{1,2}:\d{2}$/);
 		expect(section.dayNightLine).toMatch(/daylight · .* night$/);
+	});
+
+	it('formats sunrise and sunset in 12h', () => {
+		const events = computeSunEvents(NYC, new Date('2024-03-20T12:00:00-04:00'));
+		const section = formatYearlyTooltipDaySection(events, NYC.timezone, '12');
+		expect(section.sunTimesLine).toMatch(/^Sunrise .+ · Sunset .+$/);
+		expect(section.sunTimesLine).toMatch(/am|pm/);
 	});
 
 	it('omits sun times and notes polar day', () => {

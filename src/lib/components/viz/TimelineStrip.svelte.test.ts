@@ -24,6 +24,11 @@ vi.mock('$lib/stores/time.js', async () => {
 	};
 });
 
+vi.mock('$lib/stores/clockFormat.js', async () => {
+	const { writable } = await import('svelte/store');
+	return { clockFormat: writable<'24' | '12'>('24') };
+});
+
 vi.mock('$lib/stores/location.js', async () => {
 	const { readable: readableStore } = await import('svelte/store');
 	return {

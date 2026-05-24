@@ -1,6 +1,8 @@
 import { dateAtLocalDecimalHours } from './mappingCurve.js';
 import { hoursApart, scaleToSolar } from './scaling.js';
 import { computeSunEvents } from './sun.js';
+import type { ClockFormat } from './stores/clockFormat.js';
+import { formatDecimalHours } from './timeDisplay.js';
 import type { Location, SunEvents } from './types.js';
 
 export const DEFAULT_WORKDAY_START = 9;
@@ -144,12 +146,9 @@ export function yearlyDriftYRange(): { min: number; max: number } {
 	return { ...YEARLY_DRIFT_Y_RANGE };
 }
 
-/** Format decimal solar hours as `H:MM` on a 24 h clock. */
-export function formatSolarHours(hours: number): string {
-	const wrapped = ((hours % 24) + 24) % 24;
-	const h = Math.floor(wrapped);
-	const m = Math.round((wrapped - h) * 60) % 60;
-	return `${h}:${String(m).padStart(2, '0')}`;
+/** Format decimal solar hours for display (default 24h compact). */
+export function formatSolarHours(hours: number, format: ClockFormat = '24'): string {
+	return formatDecimalHours(hours, format, { compact: true });
 }
 
 /** Sun times for a 1-based day-of-year at `loc` (same anchor as {@link computeYearlyDrift}). */

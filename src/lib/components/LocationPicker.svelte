@@ -9,11 +9,17 @@
 	import { getBrowserLocation } from '$lib/geolocation.js';
 	import { PRESETS } from '$lib/presets.js';
 	import { loadPresetIndex, location, persistPresetIndex } from '$lib/stores/location.js';
+	import { clockFormat, clockFormatToggleLabel } from '$lib/stores/clockFormat.js';
 	import { cycleThemePreference, theme, themeToggleLabel } from '$lib/stores/theme.js';
+	import type { ClockFormat } from '$lib/stores/clockFormat.js';
 	import type { Location } from '$lib/types.js';
 
 	function toggleTheme(): void {
 		theme.update(cycleThemePreference);
+	}
+
+	function setClockFormat(format: ClockFormat): void {
+		clockFormat.set(format);
 	}
 
 	const SEARCH_DEBOUNCE_MS = 400;
@@ -175,21 +181,45 @@
 				{$location.latitude.toFixed(4)}°, {$location.longitude.toFixed(4)}° · {$location.timezone}
 			</span>
 		</p>
-		<button
-			type="button"
-			class="theme-toggle"
-			aria-label={themeToggleLabel($theme)}
-			aria-pressed={$theme === 'system' ? undefined : $theme === 'dark'}
-			title={themeToggleLabel($theme)}
-			onclick={toggleTheme}
-		>
-			<span class="theme-toggle__icon" aria-hidden="true">
-				{#if $theme === 'light'}☀{:else if $theme === 'dark'}☾{:else}◐{/if}
-			</span>
-			<span class="theme-toggle__label">
-				{$theme === 'system' ? 'System' : $theme === 'light' ? 'Light' : 'Dark'}
-			</span>
-		</button>
+		<div class="header-preferences">
+			<div class="format-toggle" role="group" aria-label="Clock format">
+				<button
+					type="button"
+					class="format-toggle__btn"
+					aria-pressed={$clockFormat === '24'}
+					aria-label="24-hour clock"
+					title={clockFormatToggleLabel('24')}
+					onclick={() => setClockFormat('24')}
+				>
+					24h
+				</button>
+				<button
+					type="button"
+					class="format-toggle__btn"
+					aria-pressed={$clockFormat === '12'}
+					aria-label="12-hour clock with am/pm"
+					title={clockFormatToggleLabel('12')}
+					onclick={() => setClockFormat('12')}
+				>
+					12h
+				</button>
+			</div>
+			<button
+				type="button"
+				class="theme-toggle"
+				aria-label={themeToggleLabel($theme)}
+				aria-pressed={$theme === 'system' ? undefined : $theme === 'dark'}
+				title={themeToggleLabel($theme)}
+				onclick={toggleTheme}
+			>
+				<span class="theme-toggle__icon" aria-hidden="true">
+					{#if $theme === 'light'}☀{:else if $theme === 'dark'}☾{:else}◐{/if}
+				</span>
+				<span class="theme-toggle__label">
+					{$theme === 'system' ? 'System' : $theme === 'light' ? 'Light' : 'Dark'}
+				</span>
+			</button>
+		</div>
 	</div>
 
 	<div class="controls">
@@ -379,6 +409,41 @@
 		.action-button {
 			width: auto;
 		}
+	}
+
+	.header-preferences {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.format-toggle {
+		display: inline-flex;
+		border: 1px solid var(--color-border);
+		border-radius: 0.25rem;
+		overflow: hidden;
+	}
+
+	.format-toggle__btn {
+		font: inherit;
+		font-size: 0.8125rem;
+		font-variant-numeric: tabular-nums;
+		padding: 0.375rem 0.5rem;
+		border: none;
+		background: var(--color-bg);
+		color: var(--color-muted);
+		cursor: pointer;
+	}
+
+	.format-toggle__btn[aria-pressed='true'] {
+		background: color-mix(in srgb, var(--color-bg) 85%, var(--color-fg));
+		color: var(--color-fg);
+		font-weight: 600;
+	}
+
+	.format-toggle__btn:hover {
+		background: color-mix(in srgb, var(--color-bg) 88%, var(--color-fg));
 	}
 
 	.theme-toggle {

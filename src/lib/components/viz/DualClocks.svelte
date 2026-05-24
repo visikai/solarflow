@@ -6,6 +6,7 @@
 		clockHandAngles,
 		solarHandAngles
 	} from '$lib/clockHands.js';
+	import { clockFormat } from '$lib/stores/clockFormat.js';
 	import { location } from '$lib/stores/location.js';
 	import { sunEvents } from '$lib/stores/sunEvents.js';
 	import { clockNow, solarNow } from '$lib/stores/time.js';
@@ -23,8 +24,13 @@
 	let clockAngles = $derived(clockHandAngles($clockNow, $location.timezone));
 	let solarAngles = $derived($solarNow === null ? null : solarHandAngles($solarNow));
 
-	let clockDigital = $derived(formatClockDigital($clockNow, $location.timezone));
-	let solarDigital = $derived($solarNow === null ? '' : formatSolarDigital($solarNow));
+	let clockDigital = $derived(formatClockDigital($clockNow, $location.timezone, $clockFormat));
+	let solarDigital = $derived(
+		$solarNow === null ? '' : formatSolarDigital($solarNow, $clockFormat)
+	);
+	let clockAriaLabel = $derived(
+		$clockFormat === '24' ? '24-hour clock' : '12-hour clock with am and pm'
+	);
 
 	const HOUR_TICKS = Array.from({ length: 12 }, (_, i) => i);
 
@@ -80,7 +86,7 @@
 			width={SIZE}
 			height={SIZE}
 			role="img"
-			aria-label="24-hour clock"
+			aria-label={clockAriaLabel}
 		>
 			<circle class="face" cx={CX} cy={CY} r={R} />
 			{#each HOUR_TICKS as i (i)}
