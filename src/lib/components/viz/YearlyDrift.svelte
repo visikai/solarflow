@@ -1,13 +1,17 @@
 <script lang="ts">
 	import {
 		computeYearlyDrift,
+		currentDayOfYear,
 		DEFAULT_WORKDAY_END,
 		DEFAULT_WORKDAY_START,
 		doyToMonthDay,
-		formatDaytimeOverlapLabel,
 		formatDoyLabel,
-		formatNighttimeOverlapLabel,
 		formatSolarHours,
+		formatWorkhoursOverlapLabel,
+		locationObservesDst,
+		monthStartDaysOfYear,
+		SOLAR_EVENING_REF,
+		SOLAR_MORNING_REF,
 		workdaySolarOverlapFractions,
 		yearlyDriftUplotData,
 		yearlyDriftYRange,
@@ -40,6 +44,8 @@
 		bg: string;
 		linear: string;
 		solar: string;
+		fillDaytime: string;
+		fillWorkhours: string;
 	}
 
 	let chartEl: HTMLDivElement | undefined = $state();
@@ -51,38 +57,62 @@
 	let tooltipDate = $state('');
 	let tooltipStartSolar = $state('');
 	let tooltipEndSolar = $state('');
-	let tooltipDaytime = $state('');
-	let tooltipNighttime = $state('');
+	let tooltipOverlap = $state('');
 	let tooltipLeft = $state(0);
 	let tooltipTop = $state(0);
 
 	let workdayStart = $state(DEFAULT_WORKDAY_START);
 	let workdayEnd = $state(DEFAULT_WORKDAY_END);
 
+	let observesDst = $state(false);
+
 	/** Non-reactive: read by uPlot hooks only; must not retrigger $effect when updated. */
-	const chartState: { colors: ChartColors; year: number } = {
+	const chartState: {
+		colors: ChartColors;
+		year: number;
+		currentDoy: number | null;
+	} = {
 		colors: {
 			fg: '#1a1a1a',
 			grid: '#d4d0c8',
 			bg: '#f8f6f1',
 			linear: '#2563eb',
-			solar: '#c2410c'
+			solar: '#c2410c',
+			fillDaytime: 'rgba(194, 65, 12, 0.14)',
+			fillWorkhours: 'rgba(37, 99, 235, 0.12)'
 		},
-		year: new Date().getFullYear()
+		year: new Date().getFullYear(),
+		currentDoy: null
 	};
 
 	function colorSource(): HTMLElement {
 		return chartEl ?? document.documentElement;
 	}
 
+	function colorWithAlpha(color: string, alpha: number): string {
+		const c = color.trim();
+		if (c.startsWith('#')) {
+			const hex = c.slice(1);
+			const r = Number.parseInt(hex.slice(0, 2), 16);
+			const g = Number.parseInt(hex.slice(2, 4), 16);
+			const b = Number.parseInt(hex.slice(4, 6), 16);
+			return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+		}
+		return c;
+	}
+
 	function readColors(el: HTMLElement = colorSource()): ChartColors {
 		const style = getComputedStyle(el);
+		const linear = style.getPropertyValue('--color-accent-linear').trim() || '#2563eb';
+		const solar = style.getPropertyValue('--color-accent-solar').trim() || '#c2410c';
 		return {
 			fg: style.getPropertyValue('--color-fg').trim() || '#1a1a1a',
 			grid: style.getPropertyValue('--color-grid').trim() || '#d4d0c8',
 			bg: style.getPropertyValue('--color-bg').trim() || '#f8f6f1',
-			linear: style.getPropertyValue('--color-accent-linear').trim() || '#2563eb',
-			solar: style.getPropertyValue('--color-accent-solar').trim() || '#c2410c'
+			linear,
+			solar,
+			fillDaytime: colorWithAlpha(solar, 0.14),
+			fillWorkhours: colorWithAlpha(linear, 0.12)
 		};
 	}
 
@@ -97,12 +127,149 @@
 		return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 	}
 
+	function monthAxisSplits(): number[] {
+		return monthStartDaysOfYear(chartState.year);
+	}
+
 	function monthAxisValues(_u: uPlot, splits: number[]): string[] {
 		const y = chartState.year;
 		return splits.map((doy) => {
-			const { month, day } = doyToMonthDay(y, Math.round(doy));
-			return day === 1 ? MONTH_NAMES[month - 1] : '';
+			const { month } = doyToMonthDay(y, Math.round(doy));
+			return MONTH_NAMES[month - 1];
 		});
+	}
+
+	function drawLineLabel(
+		ctx: CanvasRenderingContext2D,
+		text: string,
+		x: number,
+		y: number,
+		align: CanvasTextAlign,
+		colors: ChartColors,
+		ink: string = colors.solar
+	): void {
+		const padX = 5;
+		const padY = 3;
+		const font = '600 11px system-ui, sans-serif';
+		ctx.font = font;
+		const w = ctx.measureText(text).width + padX * 2;
+		const h = 14 + padY;
+		const bx = align === 'center' ? x - w / 2 : align === 'left' ? x : x - w;
+		const by = y - h / 2;
+
+		ctx.fillStyle = colors.bg;
+		ctx.globalAlpha = 0.92;
+		ctx.beginPath();
+		ctx.roundRect(bx, by, w, h, 3);
+		ctx.fill();
+
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = ink;
+		ctx.textAlign = align;
+		ctx.textBaseline = 'middle';
+		const tx = align === 'center' ? x : align === 'left' ? x + padX : x - padX;
+		ctx.fillText(text, tx, y);
+	}
+
+	function drawBackgroundBands(u: uPlot): void {
+		const yDayTop = u.valToPos(SOLAR_MORNING_REF, 'y', true);
+		const yDayBottom = u.valToPos(SOLAR_EVENING_REF, 'y', true);
+		if (!Number.isFinite(yDayTop) || !Number.isFinite(yDayBottom)) return;
+
+		const { left, width } = u.bbox;
+		const dayTop = Math.min(yDayTop, yDayBottom);
+		const dayHeight = Math.abs(yDayBottom - yDayTop);
+		const ctx = u.ctx;
+		const { fillDaytime, fillWorkhours } = chartState.colors;
+		const xs = u.data[0];
+		const starts = u.data[3] as (number | null)[];
+		const ends = u.data[4] as (number | null)[];
+
+		ctx.save();
+		ctx.fillStyle = fillDaytime;
+		ctx.fillRect(left, dayTop, width, dayHeight);
+
+		ctx.fillStyle = fillWorkhours;
+		ctx.beginPath();
+		let pathOpen = false;
+		for (let i = 0; i < xs.length; i++) {
+			const startH = starts[i];
+			const endH = ends[i];
+			if (startH == null || endH == null) continue;
+			const x = u.valToPos(xs[i], 'x', true);
+			const yStart = u.valToPos(startH, 'y', true);
+			const yEnd = u.valToPos(endH, 'y', true);
+			if (!Number.isFinite(x) || !Number.isFinite(yStart) || !Number.isFinite(yEnd)) continue;
+			const yTop = Math.min(yStart, yEnd);
+			if (!pathOpen) {
+				ctx.moveTo(x, yTop);
+				pathOpen = true;
+			} else {
+				ctx.lineTo(x, yTop);
+			}
+		}
+		for (let i = xs.length - 1; i >= 0; i--) {
+			const startH = starts[i];
+			const endH = ends[i];
+			if (startH == null || endH == null) continue;
+			const x = u.valToPos(xs[i], 'x', true);
+			const yStart = u.valToPos(startH, 'y', true);
+			const yEnd = u.valToPos(endH, 'y', true);
+			if (!Number.isFinite(x) || !Number.isFinite(yStart) || !Number.isFinite(yEnd)) continue;
+			const yBottom = Math.max(yStart, yEnd);
+			ctx.lineTo(x, yBottom);
+		}
+		if (pathOpen) {
+			ctx.closePath();
+			ctx.fill();
+		}
+		ctx.restore();
+	}
+
+	function drawSolarRefLabels(u: uPlot): void {
+		const ySunrise = u.valToPos(SOLAR_MORNING_REF, 'y', true);
+		const ySunset = u.valToPos(SOLAR_EVENING_REF, 'y', true);
+		if (!Number.isFinite(ySunrise) || !Number.isFinite(ySunset)) return;
+
+		const xStart = u.bbox.left + 6;
+		const ctx = u.ctx;
+		const colors = chartState.colors;
+
+		ctx.save();
+		drawLineLabel(ctx, 'sunrise', xStart, ySunrise, 'left', colors);
+		drawLineLabel(ctx, 'sunset', xStart, ySunset, 'left', colors);
+		ctx.restore();
+	}
+
+	function drawTodayMarker(u: uPlot): void {
+		const doy = chartState.currentDoy;
+		if (doy == null) return;
+		const x = u.valToPos(doy, 'x', true);
+		if (x == null || !Number.isFinite(x)) return;
+		const { top, height } = u.bbox;
+		const ctx = u.ctx;
+		const { linear } = chartState.colors;
+		ctx.save();
+		ctx.strokeStyle = linear;
+		ctx.globalAlpha = 0.75;
+		ctx.lineWidth = 2.5;
+		ctx.setLineDash([6, 5]);
+		ctx.beginPath();
+		ctx.moveTo(x, top);
+		ctx.lineTo(x, top + height);
+		ctx.stroke();
+		ctx.setLineDash([]);
+		drawLineLabel(ctx, 'today', x, top + 10, 'center', chartState.colors, linear);
+		ctx.restore();
+	}
+
+	function drawChartOverlays(u: uPlot): void {
+		drawSolarRefLabels(u);
+		drawTodayMarker(u);
+	}
+
+	function drawUnderSeries(u: uPlot): void {
+		drawBackgroundBands(u);
 	}
 
 	function updateTooltip(u: uPlot): void {
@@ -112,8 +279,8 @@
 			return;
 		}
 		const doy = u.data[0][idx];
-		const start = u.data[1][idx];
-		const end = u.data[2][idx];
+		const start = u.data[3][idx];
+		const end = u.data[4][idx];
 		if (doy == null) {
 			tooltipVisible = false;
 			return;
@@ -122,14 +289,9 @@
 		tooltipStartSolar = start == null || !Number.isFinite(start) ? '—' : formatSolarHours(start);
 		tooltipEndSolar = end == null || !Number.isFinite(end) ? '—' : formatSolarHours(end);
 		if (start != null && end != null && Number.isFinite(start) && Number.isFinite(end)) {
-			const overlap = workdaySolarOverlapFractions(start, end);
-			tooltipDaytime = formatDaytimeOverlapLabel(overlap.daytimeFraction);
-			tooltipNighttime = overlap.hasNightOverlap
-				? formatNighttimeOverlapLabel(overlap.nighttimeFraction)
-				: '';
+			tooltipOverlap = formatWorkhoursOverlapLabel(workdaySolarOverlapFractions(start, end));
 		} else {
-			tooltipDaytime = '';
-			tooltipNighttime = '';
+			tooltipOverlap = '';
 		}
 		tooltipVisible = true;
 		const { left, top } = u.cursor;
@@ -156,7 +318,9 @@
 				drag: { setScale: false }
 			},
 			hooks: {
-				setCursor: [updateTooltip]
+				setCursor: [updateTooltip],
+				drawAxes: [drawUnderSeries],
+				draw: [drawChartOverlays]
 			},
 			scales: {
 				x: { min: 1, max: series?.dayOfYear.length ?? 365 },
@@ -168,6 +332,7 @@
 					stroke: colors.fg,
 					grid: { stroke: colors.grid },
 					ticks: { stroke: colors.grid },
+					splits: monthAxisSplits,
 					values: monthAxisValues
 				},
 				{
@@ -175,11 +340,25 @@
 					stroke: colors.fg,
 					grid: { stroke: colors.grid },
 					ticks: { stroke: colors.grid },
-					values: (_u, splits) => splits.map((v) => String(Math.round(v)))
+					splits: () => [0, 6, 12, 18, 24],
+					values: (_u, splits) => splits.map((v) => String(v))
 				}
 			],
 			series: [
 				{ label: 'Day' },
+				{
+					label: 'Solar morning',
+					stroke: colors.solar,
+					width: 2,
+					points: { show: false }
+				},
+				{
+					label: 'Solar evening',
+					stroke: colors.solar,
+					width: 2,
+					dash: [6, 4],
+					points: { show: false }
+				},
 				{
 					label: 'Workday start',
 					stroke: colors.linear,
@@ -192,20 +371,6 @@
 					width: 2,
 					dash: [4, 4],
 					points: { show: false }
-				},
-				{
-					label: 'Solar morning',
-					stroke: colors.solar,
-					width: 1.5,
-					points: { show: false }
-				},
-				{
-					label: 'Solar evening',
-					stroke: colors.solar,
-					width: 1,
-					dash: [3, 3],
-					alpha: 0.45,
-					points: { show: false }
 				}
 			]
 		};
@@ -214,7 +379,7 @@
 	function rebuildChartForTheme(): void {
 		if (!chartEl || !plot || !series) return;
 		const data = plot.data;
-		const yRange = yearlyDriftYRange(series);
+		const yRange = yearlyDriftYRange();
 		plot.destroy();
 		plot = undefined;
 		chartState.colors = readColors();
@@ -226,6 +391,8 @@
 
 		const loc = $location;
 		chartState.year = new Date().getFullYear();
+		chartState.currentDoy = currentDayOfYear(loc.timezone, chartState.year);
+		observesDst = locationObservesDst(loc.timezone, chartState.year);
 		series = computeYearlyDrift(loc, {
 			year: chartState.year,
 			workdayStart,
@@ -233,7 +400,7 @@
 		});
 
 		const data = yearlyDriftUplotData(series);
-		const yRange = yearlyDriftYRange(series);
+		const yRange = yearlyDriftYRange();
 		const width = Math.max(chartEl.clientWidth, 280);
 
 		if (plot) {
@@ -287,6 +454,8 @@
 </script>
 
 <div class="yearly-drift">
+	<h3 class="yearly-drift-title">Solarflow year graph</h3>
+
 	<div class="yearly-drift-controls">
 		<label class="control">
 			<span class="control-label">Workday start</span>
@@ -313,11 +482,8 @@
 			)} to solar time through {chartState.year}.
 			{#if tooltipVisible}
 				At {tooltipDate}, start maps to solar {tooltipStartSolar}, end to solar {tooltipEndSolar}.
-				{#if tooltipDaytime}
-					{tooltipDaytime}.
-				{/if}
-				{#if tooltipNighttime}
-					{tooltipNighttime}.
+				{#if tooltipOverlap}
+					{tooltipOverlap}.
 				{/if}
 			{/if}
 		</p>
@@ -332,24 +498,30 @@
 				<strong>{tooltipDate}</strong><br />
 				Start {formatTimeInput(workdayStart)} → solar {tooltipStartSolar}<br />
 				End {formatTimeInput(workdayEnd)} → solar {tooltipEndSolar}
-				{#if tooltipDaytime}
-					<br />{tooltipDaytime}
-				{/if}
-				{#if tooltipNighttime}
-					<br />{tooltipNighttime}
+				{#if tooltipOverlap}
+					<br />{tooltipOverlap}
 				{/if}
 			</div>
 		{/if}
 	</div>
 
-	<p class="yearly-drift-caption">
-		Linear work hours mapped to solar time through the year. Dashed lines: solar 06:00 and 18:00.
-	</p>
+	{#if observesDst}
+		<p class="yearly-drift-dst-note">
+			* Sudden jumps in the graph are due to DST (Daylight Saving Time).
+		</p>
+	{/if}
 </div>
 
 <style>
 	.yearly-drift {
 		width: 100%;
+	}
+
+	.yearly-drift-title {
+		margin: 0 0 0.75rem;
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
 	}
 
 	.yearly-drift-controls {
@@ -408,7 +580,7 @@
 		transform: translateY(-100%);
 	}
 
-	.yearly-drift-caption {
+	.yearly-drift-dst-note {
 		margin: 0.35rem 0 0;
 		font-size: 0.7rem;
 		opacity: 0.55;
