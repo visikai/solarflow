@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { clockDayNightHours, formatDayNightSummary } from '$lib/dayLength.js';
 	import { DEFAULT_SCALING } from '$lib/types.js';
 	import { location } from '$lib/stores/location.js';
 	import { sunEvents } from '$lib/stores/sunEvents.js';
@@ -14,8 +15,8 @@
 
 	const { scaledSunriseHour, scaledSunsetHour } = DEFAULT_SCALING;
 
-	let events = $derived($sunEvents);
-	let polar = $derived(events.polar);
+	let todaySun = $derived($sunEvents);
+	let polar = $derived(todaySun.polar);
 
 	function localDecimalHours(instant: Date, timeZone: string): number {
 		const parts = new Intl.DateTimeFormat('en-GB', {
@@ -129,9 +130,9 @@
 		}));
 	}
 
-	let clockSegments = $derived(clockSegmentRects(events));
+	let clockSegments = $derived(clockSegmentRects(todaySun));
 	let solarSegments = $derived(solarSegmentRects());
-	let clockTicksList = $derived(clockTicks(events));
+	let clockTicksList = $derived(clockTicks(todaySun));
 	let solarTicksList = $derived(solarTicks());
 
 	let clockMarkerX = $derived(
@@ -140,6 +141,11 @@
 
 	let solarMarkerX = $derived(polar === null && $solarNow !== null ? xForHours($solarNow) : null);
 
+	let dayNightSummary = $derived.by(() => {
+		const { daylightHours, nightHours } = clockDayNightHours(todaySun);
+		return formatDayNightSummary(daylightHours, nightHours);
+	});
+
 	let timelineSummary = $derived.by(() => {
 		const tz = $location.timezone;
 		const clockTime = formatLocalTime($clockNow, tz);
@@ -147,11 +153,11 @@
 			const mode = polar === 'day' ? 'polar day' : 'polar night';
 			return `${mode}. Clock time ${clockTime}. Solar time is not shown on the timeline.`;
 		}
-		const sunrise = formatLocalTime(events.sunrise, tz);
-		const sunset = formatLocalTime(events.sunset, tz);
+		const sunrise = formatLocalTime(todaySun.sunrise, tz);
+		const sunset = formatLocalTime(todaySun.sunset, tz);
 		const solarPart =
 			$solarNow === null ? 'Solar time unavailable.' : `Solar time ${formatSolarTime($solarNow)}.`;
-		return `Clock time ${clockTime}. ${solarPart} Sunrise ${sunrise}, sunset ${sunset}.`;
+		return `Clock time ${clockTime}. ${solarPart} ${dayNightSummary}. Sunrise ${sunrise}, sunset ${sunset}.`;
 	});
 </script>
 
@@ -214,6 +220,10 @@
 				{/if}
 			{/if}
 		</svg>
+	</div>
+
+	<div class="timeline-summary">
+		<p class="day-night-summary">{dayNightSummary}</p>
 	</div>
 
 	<div class="timeline-row">
@@ -288,6 +298,23 @@
 		grid-template-columns: 3.25rem 1fr;
 		align-items: center;
 		gap: 0.5rem;
+	}
+
+	.timeline-summary {
+		display: grid;
+		grid-template-columns: 3.25rem 1fr;
+		gap: 0.5rem;
+		margin-block: -0.25rem;
+	}
+
+	.day-night-summary {
+		grid-column: 2;
+		margin: 0;
+		font-size: 0.8125rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-muted);
+		line-height: 1.35;
+		text-align: center;
 	}
 
 	.row-label {
