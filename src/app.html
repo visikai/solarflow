@@ -21,6 +21,23 @@
 				} catch (e) {}
 			})();
 		</script>
+		<script>
+			(function () {
+				try {
+					var boot = {};
+					var pi = localStorage.getItem('solarflow.presetIndex.v1');
+					if (pi !== null) {
+						var idx = parseInt(pi, 10);
+						if (!isNaN(idx) && idx >= 0) boot.presetIndex = idx;
+					}
+					var loc = localStorage.getItem('solarflow.location.v1');
+					if (loc) boot.locationJson = loc;
+					if (boot.presetIndex !== undefined || boot.locationJson) {
+						window.__SOLARFLOW_BOOT__ = boot;
+					}
+				} catch (e) {}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
