@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img"
 	aria-label="solarflow: a sun-anchored clock">
 	<title>solarflow</title>
-	<rect width="1200" height="630" fill="#f8f6f1" />
+	<rect width="1200" height="630" fill="#141412" />
 	<circle cx="600" cy="219" r="72" fill="#f4d03f" />
 	<g fill="none" stroke="#c2410c" stroke-linecap="round" stroke-width="10">
 		<line x1="600" y1="99" x2="600" y2="135" />
@@ -20,7 +20,7 @@
 		font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 		font-size="72"
 		font-weight="600"
-		fill="#1a1a1a"
+		fill="#e8e6e0"
 	>
 		solarflow
 	</text>
@@ -30,7 +30,7 @@
 		text-anchor="middle"
 		font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 		font-size="28"
-		fill="#524f4a"
+		fill="#a8a49c"
 	>
 		A clock that flows with the sun
 	</text>
