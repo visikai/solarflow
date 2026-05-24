@@ -11,6 +11,7 @@
 
 	--color-grid: #d4d0c8;
 	--color-border: #b8b4ac;
+	--color-muted: color-mix(in srgb, var(--color-fg) 62%, var(--color-bg));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +27,7 @@
 
 		--color-grid: #3a3834;
 		--color-border: #524f4a;
+		--color-muted: color-mix(in srgb, var(--color-fg) 62%, var(--color-bg));
 	}
 }
 
@@ -41,6 +43,7 @@
 
 	--color-grid: #3a3834;
 	--color-border: #524f4a;
+	--color-muted: color-mix(in srgb, var(--color-fg) 62%, var(--color-bg));
 }
 
 .sr-only {
