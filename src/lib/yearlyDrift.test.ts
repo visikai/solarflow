@@ -3,7 +3,10 @@ import {
 	computeYearlyDrift,
 	daysInYear,
 	doyToMonthDay,
+	formatDaytimeOverlapLabel,
+	formatNighttimeOverlapLabel,
 	maxYearlyDriftFromLinear,
+	workdaySolarOverlapFractions,
 	DEFAULT_WORKDAY_END,
 	DEFAULT_WORKDAY_START
 } from './yearlyDrift.js';
@@ -74,6 +77,34 @@ describe('computeYearlyDrift', () => {
 		const b = computeYearlyDrift(REYKJAVIK, params);
 		expect(a.workdayStartSolar).toEqual(b.workdayStartSolar);
 		expect(a.workdayEndSolar).toEqual(b.workdayEndSolar);
+	});
+});
+
+describe('workdaySolarOverlapFractions', () => {
+	it('work fully inside 06–18 has no night overlap', () => {
+		const o = workdaySolarOverlapFractions(8, 16);
+		expect(o.daytimeFraction).toBeCloseTo(8 / 12);
+		expect(o.nighttimeFraction).toBe(0);
+		expect(o.hasNightOverlap).toBe(false);
+	});
+
+	it('work spanning dusk has day and night shares', () => {
+		const o = workdaySolarOverlapFractions(7, 19);
+		expect(o.daytimeFraction).toBeCloseTo(11 / 12);
+		expect(o.nighttimeFraction).toBeCloseTo(1 / 12);
+		expect(o.hasNightOverlap).toBe(true);
+	});
+
+	it('wraps midnight when start > end', () => {
+		const o = workdaySolarOverlapFractions(22, 2);
+		expect(o.daytimeFraction).toBe(0);
+		expect(o.nighttimeFraction).toBeCloseTo(4 / 12);
+		expect(o.hasNightOverlap).toBe(true);
+	});
+
+	it('formats tooltip labels', () => {
+		expect(formatDaytimeOverlapLabel(2 / 3)).toBe('Daytime: 67% of 6:00–18:00');
+		expect(formatNighttimeOverlapLabel(1 / 12)).toBe('Nighttime: 8% of 18:00–6:00');
 	});
 });
 

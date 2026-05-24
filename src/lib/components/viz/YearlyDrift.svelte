@@ -4,8 +4,11 @@
 		DEFAULT_WORKDAY_END,
 		DEFAULT_WORKDAY_START,
 		doyToMonthDay,
+		formatDaytimeOverlapLabel,
 		formatDoyLabel,
+		formatNighttimeOverlapLabel,
 		formatSolarHours,
+		workdaySolarOverlapFractions,
 		yearlyDriftUplotData,
 		type YearlyDriftSeries
 	} from '$lib/yearlyDrift.js';
@@ -47,12 +50,13 @@
 	let tooltipDate = $state('');
 	let tooltipStartSolar = $state('');
 	let tooltipEndSolar = $state('');
+	let tooltipDaytime = $state('');
+	let tooltipNighttime = $state('');
 	let tooltipLeft = $state(0);
 	let tooltipTop = $state(0);
 
 	let workdayStart = $state(DEFAULT_WORKDAY_START);
 	let workdayEnd = $state(DEFAULT_WORKDAY_END);
-	let year = $state(new Date().getFullYear());
 
 	/** Non-reactive: read by uPlot hooks only; must not retrigger $effect when updated. */
 	const chartState: { colors: ChartColors; year: number } = {
@@ -65,10 +69,6 @@
 		},
 		year: new Date().getFullYear()
 	};
-
-	const yearOptions = $derived(
-		Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i)
-	);
 
 	function readColors(el: HTMLElement): ChartColors {
 		const style = getComputedStyle(el);
@@ -116,6 +116,16 @@
 		tooltipDate = formatDoyLabel(chartState.year, doy);
 		tooltipStartSolar = start == null || !Number.isFinite(start) ? '—' : formatSolarHours(start);
 		tooltipEndSolar = end == null || !Number.isFinite(end) ? '—' : formatSolarHours(end);
+		if (start != null && end != null && Number.isFinite(start) && Number.isFinite(end)) {
+			const overlap = workdaySolarOverlapFractions(start, end);
+			tooltipDaytime = formatDaytimeOverlapLabel(overlap.daytimeFraction);
+			tooltipNighttime = overlap.hasNightOverlap
+				? formatNighttimeOverlapLabel(overlap.nighttimeFraction)
+				: '';
+		} else {
+			tooltipDaytime = '';
+			tooltipNighttime = '';
+		}
 		tooltipVisible = true;
 		const { left, top } = u.cursor;
 		if (left == null || top == null) return;
@@ -217,9 +227,9 @@
 		if (!chartEl) return;
 
 		const loc = $location;
-		chartState.year = year;
+		chartState.year = new Date().getFullYear();
 		series = computeYearlyDrift(loc, {
-			year,
+			year: chartState.year,
 			workdayStart,
 			workdayEnd
 		});
@@ -240,7 +250,6 @@
 		void $location;
 		void workdayStart;
 		void workdayEnd;
-		void year;
 		void chartEl;
 		untrack(() => refreshChart());
 	});
@@ -298,14 +307,6 @@
 				onchange={(e) => (workdayEnd = parseTimeInput(e.currentTarget.value))}
 			/>
 		</label>
-		<label class="control">
-			<span class="control-label">Year</span>
-			<select bind:value={year}>
-				{#each yearOptions as y (y)}
-					<option value={y}>{y}</option>
-				{/each}
-			</select>
-		</label>
 	</div>
 
 	<div class="yearly-drift-chart-wrap">
@@ -320,6 +321,12 @@
 				<strong>{tooltipDate}</strong><br />
 				Start {formatTimeInput(workdayStart)} → solar {tooltipStartSolar}<br />
 				End {formatTimeInput(workdayEnd)} → solar {tooltipEndSolar}
+				{#if tooltipDaytime}
+					<br />{tooltipDaytime}
+				{/if}
+				{#if tooltipNighttime}
+					<br />{tooltipNighttime}
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -352,8 +359,7 @@
 		opacity: 0.7;
 	}
 
-	.control input,
-	.control select {
+	.control input {
 		font: inherit;
 		padding: 0.25rem 0.4rem;
 		border: 1px solid var(--color-grid);

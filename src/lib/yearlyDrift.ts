@@ -109,6 +109,79 @@ export function formatDoyLabel(year: number, doy: number): string {
 	}).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
+export interface WorkdaySolarOverlap {
+	/** Fraction of the fixed 06:00–18:00 window covered by the work interval. */
+	daytimeFraction: number;
+	/** Fraction of the fixed 18:00–06:00 night window covered by the work interval. */
+	nighttimeFraction: number;
+	/** False when the entire work interval lies within 06:00–18:00. */
+	hasNightOverlap: boolean;
+}
+
+function overlapOnLine(a0: number, a1: number, b0: number, b1: number): number {
+	return Math.max(0, Math.min(a1, b1) - Math.max(a0, b0));
+}
+
+/** Work interval as one or two segments on a 24 h clock (wrap when start > end). */
+function workSolarSegments(startSolar: number, endSolar: number): [number, number][] {
+	const s = ((startSolar % 24) + 24) % 24;
+	const e = ((endSolar % 24) + 24) % 24;
+	if (s <= e) return [[s, e]];
+	return [
+		[s, 24],
+		[0, e]
+	];
+}
+
+/**
+ * Share of fixed solar day (06:00–18:00) and night (18:00–06:00) occupied by the work block
+ * between converted solar start/end. Work spans midnight when start > end on the clock.
+ */
+export function workdaySolarOverlapFractions(
+	startSolar: number,
+	endSolar: number,
+	dayStart = SOLAR_MORNING_REF,
+	dayEnd = SOLAR_EVENING_REF
+): WorkdaySolarOverlap {
+	const dayWindow = dayEnd - dayStart;
+	const nightWindow = 24 - dayWindow;
+	const segments = workSolarSegments(startSolar, endSolar);
+
+	let daytimeHours = 0;
+	let nighttimeHours = 0;
+	for (const [ws, we] of segments) {
+		daytimeHours += overlapOnLine(ws, we, dayStart, dayEnd);
+		nighttimeHours += overlapOnLine(ws, we, 0, dayStart);
+		nighttimeHours += overlapOnLine(ws, we, dayEnd, 24);
+	}
+
+	const fullyInsideDay = segments.every(([ws, we]) => ws >= dayStart && we <= dayEnd);
+
+	return {
+		daytimeFraction: daytimeHours / dayWindow,
+		nighttimeFraction: nighttimeHours / nightWindow,
+		hasNightOverlap: !fullyInsideDay && nighttimeHours > 0
+	};
+}
+
+export function formatDaytimeOverlapLabel(
+	fraction: number,
+	dayStart = SOLAR_MORNING_REF,
+	dayEnd = SOLAR_EVENING_REF
+): string {
+	const pct = Math.round(fraction * 100);
+	return `Daytime: ${pct}% of ${formatSolarHours(dayStart)}–${formatSolarHours(dayEnd)}`;
+}
+
+export function formatNighttimeOverlapLabel(
+	fraction: number,
+	dayEnd = SOLAR_EVENING_REF,
+	dayStart = SOLAR_MORNING_REF
+): string {
+	const pct = Math.round(fraction * 100);
+	return `Nighttime: ${pct}% of ${formatSolarHours(dayEnd)}–${formatSolarHours(dayStart)}`;
+}
+
 /** Max absolute deviation from input linear hour across the year (equator stability test). */
 export function maxYearlyDriftFromLinear(
 	series: YearlyDriftSeries,
